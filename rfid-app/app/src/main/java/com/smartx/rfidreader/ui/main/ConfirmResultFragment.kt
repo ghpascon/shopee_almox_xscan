@@ -10,6 +10,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.smartx.rfidreader.R
+import com.smartx.rfidreader.core.settings.OperationType
 import com.smartx.rfidreader.databinding.FragmentConfirmResultBinding
 import kotlinx.coroutines.launch
 
@@ -64,12 +65,20 @@ class ConfirmResultFragment : Fragment() {
             is MoveLocationUiResult.Success -> {
                 binding.textResultSymbol.text = "✅"
                 binding.textResultTitle.text = getString(R.string.move_result_success_title)
-                binding.textResultMessage.text =
+                binding.textResultMessage.text = if (result.operationType == OperationType.DISCARD) {
                     getString(
-                        R.string.move_result_success_message,
+                        R.string.move_result_success_message_discard,
                         result.sentCount,
                         result.locationName
                     )
+                } else {
+                    getString(
+                        R.string.move_result_success_message,
+                        result.sentCount,
+                        operationLabel(result.operationType),
+                        result.locationName
+                    )
+                }
                 binding.btnRetrySend.visibility = View.GONE
                 binding.btnRetrySend.isEnabled = false
                 binding.btnNewReading.isEnabled = true
@@ -89,12 +98,24 @@ class ConfirmResultFragment : Fragment() {
         }
     }
 
+    private fun operationLabel(operationType: OperationType): String {
+        return when (operationType) {
+            OperationType.ENTRY -> getString(R.string.operation_label_entry)
+            OperationType.EXIT -> getString(R.string.operation_label_exit)
+            OperationType.DISCARD -> getString(R.string.operation_label_discard)
+            OperationType.NONE -> getString(R.string.operation_none)
+        }
+    }
+
     private fun readInitialResult(): MoveLocationUiResult {
         val success = requireArguments().getBoolean(ARG_SUCCESS)
         return if (success) {
             MoveLocationUiResult.Success(
                 sentCount = requireArguments().getInt(ARG_SENT_COUNT),
-                locationName = requireArguments().getString(ARG_LOCATION_NAME).orEmpty()
+                locationName = requireArguments().getString(ARG_LOCATION_NAME).orEmpty(),
+                operationType = OperationType.fromValue(
+                    requireArguments().getString(ARG_OPERATION_TYPE)
+                )
             )
         } else {
             MoveLocationUiResult.Error(
@@ -113,6 +134,7 @@ class ConfirmResultFragment : Fragment() {
         private const val ARG_SUCCESS = "success"
         private const val ARG_SENT_COUNT = "sent_count"
         private const val ARG_LOCATION_NAME = "location_name"
+        private const val ARG_OPERATION_TYPE = "operation_type"
         private const val ARG_MESSAGE = "message"
         private const val ARG_CAN_RETRY = "can_retry"
 
@@ -123,6 +145,7 @@ class ConfirmResultFragment : Fragment() {
                         putBoolean(ARG_SUCCESS, true)
                         putInt(ARG_SENT_COUNT, result.sentCount)
                         putString(ARG_LOCATION_NAME, result.locationName)
+                        putString(ARG_OPERATION_TYPE, result.operationType.value)
                     }
 
                     is MoveLocationUiResult.Error -> {

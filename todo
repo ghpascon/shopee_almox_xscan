@@ -1,3 +1,8 @@
-test
-description
-confirm
+mudar o titulo de recebimento para ALMOX
+
+na parte de config do xtrack deve ter 2 localizações localização de entrada e localizaçlão de saida
+
+criar uma tela intermediaria apos o login onde a pessoa vai definir a operação
+na tela de leitura na parte de cima deve mostrar ALMOX - ENTRADA/SAIDA e no footer a localização de acordo com a operação
+as menssagens nessa tela devem ser de confirmar entrada/saida
+

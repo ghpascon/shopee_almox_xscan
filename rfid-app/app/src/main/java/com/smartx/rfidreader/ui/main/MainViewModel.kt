@@ -16,6 +16,8 @@ import com.smartx.rfidreader.core.reader.RfidTag
 import com.smartx.rfidreader.core.registry.ReaderRegistry
 import com.smartx.rfidreader.core.settings.AppSettings
 import com.smartx.rfidreader.core.settings.AppSettingsRepository
+import com.smartx.rfidreader.core.settings.OperationType
+import com.smartx.rfidreader.core.xtrack.XTrackCondition
 import com.smartx.rfidreader.core.xtrack.XTrackLoginResult
 import com.smartx.rfidreader.core.xtrack.xtrack_manager
 import com.smartx.rfidreader.readers.cfh301.CfH301Reader
@@ -33,6 +35,7 @@ data class MainUiState(
     val connectionState: ReaderConnectionState = ReaderConnectionState.DISCONNECTED,
     val isConnecting: Boolean = false,
     val isInventorying: Boolean = false,
+    val isLoadingDiscardConditions: Boolean = false,
     val config: ReaderConfig = ReaderConfig(),
     val isSavingConfig: Boolean = false,
     val configSaveSuccess: Boolean? = null,
@@ -48,13 +51,27 @@ data class MainUiState(
 data class MoveLocationRequest(
     val xtrackUrl: String,
     val locationName: String,
+    val operationType: OperationType,
     val objectIdCodes: List<String>
+)
+
+data class MoveConditionRequest(
+    val xtrackUrl: String,
+    val conditionName: String,
+    val operationType: OperationType,
+    val objectIdCodes: List<String>
+)
+
+data class DiscardConditionOption(
+    val id: String,
+    val name: String
 )
 
 sealed interface MoveLocationUiResult {
     data class Success(
         val sentCount: Int,
-        val locationName: String
+        val locationName: String,
+        val operationType: OperationType
     ) : MoveLocationUiResult
     data class Error(
         val message: String,
@@ -112,6 +129,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private val _navigateToHome = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val navigateToHome: SharedFlow<Unit> = _navigateToHome.asSharedFlow()
 
+    /** Evento de navegação para selecionar operação após login */
+    private val _navigateToOperation = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val navigateToOperation: SharedFlow<Unit> = _navigateToOperation.asSharedFlow()
+
     /** Resultado ao salvar inventário: true = sucesso, false = erro */
     private val _saveInventoryResult = MutableSharedFlow<Boolean>(extraBufferCapacity = 1)
     val saveInventoryResult: SharedFlow<Boolean> = _saveInventoryResult.asSharedFlow()
@@ -119,6 +140,14 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     /** Resultado da operação MoveLocation do botão Confirmar */
     private val _moveLocationResult = MutableSharedFlow<MoveLocationUiResult>(extraBufferCapacity = 1)
     val moveLocationResult: SharedFlow<MoveLocationUiResult> = _moveLocationResult.asSharedFlow()
+
+    /** Opções de motivo de descarte carregadas do XTrack */
+    private val _discardConditionOptions = MutableSharedFlow<List<DiscardConditionOption>>(extraBufferCapacity = 1)
+    val discardConditionOptions: SharedFlow<List<DiscardConditionOption>> = _discardConditionOptions.asSharedFlow()
+
+    /** Erro transitório ao carregar motivos de descarte */
+    private val _discardConditionError = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val discardConditionError: SharedFlow<String> = _discardConditionError.asSharedFlow()
 
     /** Log de conexão — lista acumulada de linhas exibida no ConnectionLogDialogFragment */
     private val _connectionLog = MutableStateFlow<List<String>>(emptyList())
@@ -129,6 +158,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     private var hasDescriptionLookupConnectionFailure = false
     private var lastDescriptionResolveAtMs = 0L
     private var lastMoveLocationRequest: MoveLocationRequest? = null
+    private var lastMoveConditionRequest: MoveConditionRequest? = null
 
     companion object {
         private const val DESCRIPTION_RESOLVE_INTERVAL_MS = 3_000L
@@ -548,7 +578,23 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val app = getApplication<Application>()
         val settings = _uiState.value.appSettings
         val xtrackUrl = settings.xtrackUrl.trim()
-        val locationName = settings.selectedLocationName.trim().ifBlank { settings.selectedLocationId.trim() }
+        val operationType = settings.selectedOperation
+        val locationName = when (operationType) {
+            OperationType.ENTRY -> settings.entryLocationName.trim().ifBlank { settings.entryLocationId.trim() }
+            OperationType.EXIT -> settings.exitLocationName.trim().ifBlank { settings.exitLocationId.trim() }
+            OperationType.DISCARD -> ""
+            OperationType.NONE -> ""
+        }
+
+        if (operationType == OperationType.NONE) {
+            _moveLocationResult.tryEmit(
+                MoveLocationUiResult.Error(
+                    message = app.getString(R.string.move_location_error_operation_missing),
+                    canRetry = false
+                )
+            )
+            return
+        }
 
         if (xtrackUrl.isBlank()) {
             _moveLocationResult.tryEmit(
@@ -589,15 +635,132 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val request = MoveLocationRequest(
             xtrackUrl = xtrackUrl,
             locationName = locationName,
+            operationType = operationType,
             objectIdCodes = objectIds
         )
         lastMoveLocationRequest = request
+        lastMoveConditionRequest = null
         executeMoveLocation(request)
     }
 
+    fun requestDiscardConditions() {
+        val app = getApplication<Application>()
+        val settings = _uiState.value.appSettings
+        val xtrackUrl = settings.xtrackUrl.trim()
+
+        if (xtrackUrl.isBlank()) {
+            _discardConditionError.tryEmit(app.getString(R.string.error_xtrack_url_required))
+            return
+        }
+
+        if (_uiState.value.isLoadingDiscardConditions) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingDiscardConditions = true) }
+            val result = xtrack_manager.fetchConditions(xtrackUrl)
+            result.onSuccess { allConditions ->
+                val options = filterConditionsByUserDepartment(allConditions)
+                    .map { DiscardConditionOption(id = it.id, name = it.name) }
+
+                if (options.isEmpty()) {
+                    _discardConditionError.emit(app.getString(R.string.discard_reason_empty))
+                    return@onSuccess
+                }
+
+                _discardConditionOptions.emit(options)
+            }.onFailure { err ->
+                val message = err.message ?: app.getString(R.string.move_condition_error_connection)
+                _discardConditionError.emit(message)
+            }
+            _uiState.update { it.copy(isLoadingDiscardConditions = false) }
+        }
+    }
+
+    private fun filterConditionsByUserDepartment(conditions: List<XTrackCondition>): List<XTrackCondition> {
+        val allowed = xtrack_manager.currentUser.value?.allowedDepartmentIds
+            ?.map { it.trim() }
+            ?.filter { it.isNotBlank() }
+            ?.toSet()
+            .orEmpty()
+
+        return conditions.filter { condition ->
+            val departments = condition.departmentIds
+            departments.isEmpty() || allowed.isEmpty() || departments.any { it in allowed }
+        }
+    }
+
+    fun getRegisteredObjectCount(): Int {
+        return _tagMap.values
+            .filterNot { it.descriptionLookupError }
+            .map { it.objectIdCode.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .size
+    }
+
+    fun confirmMoveCondition(conditionName: String) {
+        val app = getApplication<Application>()
+        val settings = _uiState.value.appSettings
+        val xtrackUrl = settings.xtrackUrl.trim()
+        val normalizedCondition = conditionName.trim()
+
+        if (xtrackUrl.isBlank()) {
+            _moveLocationResult.tryEmit(
+                MoveLocationUiResult.Error(
+                    message = app.getString(R.string.error_xtrack_url_required),
+                    canRetry = false
+                )
+            )
+            return
+        }
+
+        if (normalizedCondition.isBlank()) {
+            _moveLocationResult.tryEmit(
+                MoveLocationUiResult.Error(
+                    message = app.getString(R.string.discard_reason_required),
+                    canRetry = false
+                )
+            )
+            return
+        }
+
+        val objectIds = _tagMap.values
+            .filterNot { it.descriptionLookupError }
+            .map { it.objectIdCode.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+
+        if (objectIds.isEmpty()) {
+            _moveLocationResult.tryEmit(
+                MoveLocationUiResult.Error(
+                    message = app.getString(R.string.move_location_error_no_registered_tags),
+                    canRetry = false
+                )
+            )
+            return
+        }
+
+        val request = MoveConditionRequest(
+            xtrackUrl = xtrackUrl,
+            conditionName = normalizedCondition,
+            operationType = OperationType.DISCARD,
+            objectIdCodes = objectIds
+        )
+
+        lastMoveConditionRequest = request
+        lastMoveLocationRequest = null
+        executeMoveCondition(request)
+    }
+
     fun retryLastMoveLocation() {
-        val request = lastMoveLocationRequest
-        if (request == null) {
+        val conditionRequest = lastMoveConditionRequest
+        if (conditionRequest != null) {
+            executeMoveCondition(conditionRequest)
+            return
+        }
+
+        val locationRequest = lastMoveLocationRequest
+        if (locationRequest == null) {
             val app = getApplication<Application>()
             _moveLocationResult.tryEmit(
                 MoveLocationUiResult.Error(
@@ -607,7 +770,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             )
             return
         }
-        executeMoveLocation(request)
+        executeMoveLocation(locationRequest)
     }
 
     private fun executeMoveLocation(request: MoveLocationRequest) {
@@ -623,7 +786,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 _moveLocationResult.emit(
                     MoveLocationUiResult.Success(
                         sentCount = sentCount,
-                        locationName = request.locationName
+                        locationName = request.locationName,
+                        operationType = request.operationType
                     )
                 )
             }.onFailure { err ->
@@ -631,6 +795,35 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                 _moveLocationResult.emit(
                     MoveLocationUiResult.Error(
                         message = app.getString(R.string.move_location_error_connection),
+                        canRetry = true
+                    )
+                )
+            }
+        }
+    }
+
+    private fun executeMoveCondition(request: MoveConditionRequest) {
+        viewModelScope.launch {
+            val app = getApplication<Application>()
+            val result = xtrack_manager.moveCondition(
+                xtrackUrl = request.xtrackUrl,
+                objectIdCodes = request.objectIdCodes,
+                conditionName = request.conditionName
+            )
+
+            result.onSuccess { sentCount ->
+                _moveLocationResult.emit(
+                    MoveLocationUiResult.Success(
+                        sentCount = sentCount,
+                        locationName = request.conditionName,
+                        operationType = request.operationType
+                    )
+                )
+            }.onFailure { err ->
+                Log.e(TAG, "Falha ao enviar MoveCondition", err)
+                _moveLocationResult.emit(
+                    MoveLocationUiResult.Error(
+                        message = app.getString(R.string.move_condition_error_connection),
                         canRetry = true
                     )
                 )
@@ -830,8 +1023,11 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         if (settings.xtrackUrl.trim().isBlank()) {
             missing += app.getString(R.string.login_prereq_xtrack_url)
         }
-        if (settings.selectedLocationId.trim().isBlank()) {
-            missing += app.getString(R.string.login_prereq_location)
+        if (settings.entryLocationId.trim().isBlank()) {
+            missing += app.getString(R.string.login_prereq_entry_location)
+        }
+        if (settings.exitLocationId.trim().isBlank()) {
+            missing += app.getString(R.string.login_prereq_exit_location)
         }
 
         if (missing.isEmpty()) return null
@@ -852,6 +1048,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
             when (val result = xtrack_manager.login(xtrackUrl, username, password)) {
                 is XTrackLoginResult.Success -> {
+                    saveAppSettings(_uiState.value.appSettings.copy(selectedOperation = OperationType.NONE))
                     _uiState.update {
                         it.copy(
                             isLoggingIn = false,
@@ -859,7 +1056,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                             loginErrorMessage = null
                         )
                     }
-                    _navigateToHome.emit(Unit)
+                    _navigateToOperation.emit(Unit)
                 }
 
                 is XTrackLoginResult.Error -> {
@@ -877,6 +1074,21 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
     fun consumeLoginError() {
         _uiState.update { it.copy(loginErrorMessage = null) }
+    }
+
+    fun selectOperation(operationType: OperationType) {
+        if (operationType == OperationType.NONE) return
+        val current = _uiState.value.appSettings
+        saveAppSettings(current.copy(selectedOperation = operationType))
+        viewModelScope.launch {
+            _navigateToHome.emit(Unit)
+        }
+    }
+
+    fun clearSelectedOperation() {
+        val current = _uiState.value.appSettings
+        if (current.selectedOperation == OperationType.NONE) return
+        saveAppSettings(current.copy(selectedOperation = OperationType.NONE))
     }
 
     // -------------------------------------------------------------------------

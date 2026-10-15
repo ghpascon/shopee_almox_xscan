@@ -19,6 +19,8 @@ import com.smartx.rfidreader.databinding.ActivityMainBinding
 import com.smartx.rfidreader.ui.base.BaseActivity
 import com.smartx.rfidreader.ui.main.access.ConfigAccessFragment
 import com.smartx.rfidreader.ui.main.login.LoginFragment
+import com.smartx.rfidreader.ui.main.operation.OperationSelectFragment
+import com.smartx.rfidreader.ui.main.reading.ReadingFragment
 import kotlinx.coroutines.launch
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
@@ -37,6 +39,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         private const val HEADER_HOLD_MS = 5000L
         const val TAG_HOME = "home"
         const val TAG_LOGIN = "login"
+        const val TAG_OPERATION = "operation"
         const val TAG_CONFIG_ACCESS = "config_access"
     }
 
@@ -72,6 +75,18 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private fun loadHomeOrLogin() {
         if (viewModel.uiState.value.isAuthenticated) loadHome() else loadLogin()
+    }
+
+    private fun loadOperation() {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, OperationSelectFragment(), TAG_OPERATION)
+            .commit()
+    }
+
+    fun openOperationSelection() {
+        viewModel.clearSelectedOperation()
+        supportFragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        loadOperation()
     }
 
     private fun observeHeader() {
@@ -149,6 +164,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun setupBackHandler() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                val current = supportFragmentManager.findFragmentById(R.id.fragmentContainer)
+                val isReadingScreen = current is HomeFragment || current is ReadingFragment
+                if (viewModel.uiState.value.isAuthenticated && isReadingScreen) {
+                    openOperationSelection()
+                    return
+                }
+
                 if (supportFragmentManager.backStackEntryCount > 0) {
                     supportFragmentManager.popBackStack()
                     binding.root.post { enforceAuthOnHome() }
@@ -183,6 +205,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.navigateToHome.collect {
                     goHome()
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.navigateToOperation.collect {
+                    openOperationSelection()
                 }
             }
         }

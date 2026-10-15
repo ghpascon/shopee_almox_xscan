@@ -25,6 +25,9 @@ public final class FragmentHomeBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
+  public final MaterialButton btnChangeOperation;
+
+  @NonNull
   public final MaterialButton btnConfirm;
 
   @NonNull
@@ -61,13 +64,14 @@ public final class FragmentHomeBinding implements ViewBinding {
   public final TextView textUnregisteredTitle;
 
   private FragmentHomeBinding(@NonNull ConstraintLayout rootView,
-      @NonNull MaterialButton btnConfirm, @NonNull MaterialCardView cardTags,
-      @NonNull MaterialCardView cardTotalLido, @NonNull MaterialCardView cardUnregisteredTags,
-      @NonNull RecyclerView recyclerEpcs, @NonNull RecyclerView recyclerUnregisteredTags,
-      @NonNull NestedScrollView scrollHomeContent, @NonNull View statusDot,
-      @NonNull LinearLayout statusRow, @NonNull TextView textStatusHome,
+      @NonNull MaterialButton btnChangeOperation, @NonNull MaterialButton btnConfirm,
+      @NonNull MaterialCardView cardTags, @NonNull MaterialCardView cardTotalLido,
+      @NonNull MaterialCardView cardUnregisteredTags, @NonNull RecyclerView recyclerEpcs,
+      @NonNull RecyclerView recyclerUnregisteredTags, @NonNull NestedScrollView scrollHomeContent,
+      @NonNull View statusDot, @NonNull LinearLayout statusRow, @NonNull TextView textStatusHome,
       @NonNull TextView textTotalLido, @NonNull TextView textUnregisteredTitle) {
     this.rootView = rootView;
+    this.btnChangeOperation = btnChangeOperation;
     this.btnConfirm = btnConfirm;
     this.cardTags = cardTags;
     this.cardTotalLido = cardTotalLido;
@@ -109,6 +113,12 @@ public final class FragmentHomeBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.btnChangeOperation;
+      MaterialButton btnChangeOperation = ViewBindings.findChildViewById(rootView, id);
+      if (btnChangeOperation == null) {
+        break missingId;
+      }
+
       id = R.id.btnConfirm;
       MaterialButton btnConfirm = ViewBindings.findChildViewById(rootView, id);
       if (btnConfirm == null) {
@@ -181,8 +191,8 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentHomeBinding((ConstraintLayout) rootView, btnConfirm, cardTags,
-          cardTotalLido, cardUnregisteredTags, recyclerEpcs, recyclerUnregisteredTags,
+      return new FragmentHomeBinding((ConstraintLayout) rootView, btnChangeOperation, btnConfirm,
+          cardTags, cardTotalLido, cardUnregisteredTags, recyclerEpcs, recyclerUnregisteredTags,
           scrollHomeContent, statusDot, statusRow, textStatusHome, textTotalLido,
           textUnregisteredTitle);
     }

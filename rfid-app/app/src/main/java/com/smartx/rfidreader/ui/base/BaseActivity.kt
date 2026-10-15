@@ -15,6 +15,7 @@ import com.smartx.rfidreader.R
 import com.smartx.rfidreader.core.reader.ActiveReaderState
 import com.smartx.rfidreader.core.reader.ReaderConnectionState
 import com.smartx.rfidreader.core.settings.AppSettingsRepository
+import com.smartx.rfidreader.core.settings.OperationType
 import com.smartx.rfidreader.core.xtrack.xtrack_manager
 import com.smartx.rfidreader.databinding.ActivityBaseBinding
 import com.smartx.rfidreader.databinding.HeaderAppBinding
@@ -128,10 +129,28 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                             if (isLoggedIn) View.VISIBLE else View.GONE
 
                         _baseBinding.footerApp.footerUserInfo.text = if (user == null) {
+                            _baseBinding.headerApp.headerTitle.text = getString(R.string.app_name)
                             getString(R.string.footer_user_not_authenticated)
                         } else {
-                            val locationLabel = settings.selectedLocationName
-                                .ifBlank { settings.selectedLocationId }
+                            val operationLabel = when (settings.selectedOperation) {
+                                OperationType.ENTRY -> getString(R.string.operation_label_entry)
+                                OperationType.EXIT -> getString(R.string.operation_label_exit)
+                                OperationType.DISCARD -> getString(R.string.operation_label_discard)
+                                OperationType.NONE -> getString(R.string.operation_none)
+                            }
+                            val locationLabel = when (settings.selectedOperation) {
+                                OperationType.ENTRY -> settings.entryLocationName.ifBlank { settings.entryLocationId }
+                                OperationType.EXIT -> settings.exitLocationName.ifBlank { settings.exitLocationId }
+                                OperationType.DISCARD -> ""
+                                OperationType.NONE -> ""
+                            }
+
+                            _baseBinding.headerApp.headerTitle.text = if (settings.selectedOperation == OperationType.NONE) {
+                                getString(R.string.app_name)
+                            } else {
+                                operationLabel
+                            }
+
                             if (locationLabel.isBlank()) {
                                 getString(
                                     R.string.footer_user_logged,
@@ -139,8 +158,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
                                 )
                             } else {
                                 getString(
-                                    R.string.footer_user_logged_with_location,
+                                    R.string.footer_user_logged_with_operation_location,
                                     user.name.ifBlank { user.login },
+                                    operationLabel,
                                     locationLabel
                                 )
                             }

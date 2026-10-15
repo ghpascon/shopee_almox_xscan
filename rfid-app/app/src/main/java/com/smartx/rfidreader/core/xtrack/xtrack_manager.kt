@@ -40,6 +40,12 @@ data class XTrackObjectInfo(
     val objectIdCode: String
 )
 
+data class XTrackCondition(
+    val id: String,
+    val name: String,
+    val departmentIds: List<String>
+)
+
 private data class ParsedRow(
     val fields: Map<String, List<String>>
 ) {
@@ -54,9 +60,11 @@ object xtrack_manager {
     private const val GET_USER_PAYLOAD = "<msg><command>GetUser</command><terminal>ERP</terminal></msg>"
 
     private const val GET_LOCATION_PAYLOAD = "<msg><command>GetLocation</command><terminal>ERP</terminal></msg>"
+    private const val GET_CONDITION_PAYLOAD = "<msg><command>GetCondition</command><terminal>SAPext</terminal></msg>"
 
     private const val GET_OBJECT_COMMAND = "GetObject"
     private const val MOVE_LOCATION_COMMAND = "MoveLocation"
+    private const val MOVE_CONDITION_COMMAND = "MoveCondition"
     private const val MOVE_LOCATION_TERMINAL = "SAPext"
 
     private const val RESPONSE_PREVIEW_MAX = 500
@@ -206,6 +214,28 @@ object xtrack_manager {
         }
     }
 
+    suspend fun fetchConditions(xtrackUrl: String): Result<List<XTrackCondition>> = withContext(Dispatchers.IO) {
+        val url = xtrackUrl.trim()
+        if (url.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("xtrack_url não configurada"))
+        }
+
+        runCatching {
+            Log.i(TAG, "POST GetCondition -> $url")
+            val xml = postXml(url, GET_CONDITION_PAYLOAD)
+            if (xml.isBlank()) {
+                throw IllegalStateException("XTrack retornou resposta vazia para GetCondition")
+            }
+            val parsed = parseConditionsXml(xml)
+            if (parsed.isEmpty()) {
+                throw IllegalStateException("Nenhum motivo retornado por GetCondition")
+            }
+            parsed
+        }.onFailure { err ->
+            Log.e(TAG, "GetCondition failed: ${err.message}", err)
+        }
+    }
+
     suspend fun moveLocation(
         xtrackUrl: String,
         objectIdCodes: List<String>,
@@ -237,6 +267,40 @@ object xtrack_manager {
             normalizedIds.size
         }.onFailure { err ->
             Log.e(TAG, "MoveLocation failed: ${err.message}", err)
+        }
+    }
+
+    suspend fun moveCondition(
+        xtrackUrl: String,
+        objectIdCodes: List<String>,
+        conditionName: String
+    ): Result<Int> = withContext(Dispatchers.IO) {
+        val url = xtrackUrl.trim()
+        if (url.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("xtrack_url não configurada"))
+        }
+
+        val normalizedCondition = conditionName.trim()
+        if (normalizedCondition.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("Motivo não definido"))
+        }
+
+        val normalizedIds = objectIdCodes
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+
+        if (normalizedIds.isEmpty()) {
+            return@withContext Result.failure(IllegalArgumentException("Nenhum objeto cadastrado para enviar"))
+        }
+
+        runCatching {
+            val payload = buildMoveConditionPayload(normalizedIds, normalizedCondition)
+            Log.i(TAG, "POST MoveCondition -> $url (objects=${normalizedIds.size}, condition=$normalizedCondition)")
+            postXml(url, payload)
+            normalizedIds.size
+        }.onFailure { err ->
+            Log.e(TAG, "MoveCondition failed: ${err.message}", err)
         }
     }
 
@@ -356,6 +420,25 @@ object xtrack_manager {
         return result
     }
 
+    internal fun parseConditionsXml(xml: String): List<XTrackCondition> {
+        val rows = parseDataRows(xml)
+        return rows.mapNotNull { row ->
+            val id = row.first("ID").trim()
+            val name = row.first("NAME").trim()
+            if (id.isBlank() && name.isBlank()) return@mapNotNull null
+            val departments = row.all("DEPARTMENT")
+                .map { it.trim() }
+                .filter { it.isNotBlank() }
+                .distinct()
+
+            XTrackCondition(
+                id = id,
+                name = if (name.isBlank()) id else name,
+                departmentIds = departments
+            )
+        }.distinctBy { it.id.ifBlank { it.name } }
+    }
+
     private fun parseDataRows(xml: String): List<ParsedRow> {
         if (xml.isBlank()) return emptyList()
         val result = mutableListOf<ParsedRow>()
@@ -409,6 +492,13 @@ object xtrack_manager {
             "<data><object>${xmlEscape(idCode)}</object><location>${xmlEscape(locationName)}</location></data>"
         }
         return "<msg><command>$MOVE_LOCATION_COMMAND</command><terminal>$MOVE_LOCATION_TERMINAL</terminal>$dataXml</msg>"
+    }
+
+    private fun buildMoveConditionPayload(objectIdCodes: List<String>, conditionName: String): String {
+        val dataXml = objectIdCodes.joinToString(separator = "") { idCode ->
+            "<data><object>${xmlEscape(idCode)}</object><condition>${xmlEscape(conditionName)}</condition></data>"
+        }
+        return "<msg><command>$MOVE_CONDITION_COMMAND</command><terminal>$MOVE_LOCATION_TERMINAL</terminal>$dataXml</msg>"
     }
 
     private fun extractFirstValue(xmlBlock: String, tagName: String): String {

@@ -30,7 +30,9 @@ import com.smartx.rfidreader.R
 import com.smartx.rfidreader.core.reader.ReaderConnectionState
 import com.smartx.rfidreader.core.reader.RfidTag
 import com.smartx.rfidreader.databinding.FragmentReadingBinding
+import com.smartx.rfidreader.ui.main.MainActivity
 import com.smartx.rfidreader.ui.main.MainViewModel
+import com.smartx.rfidreader.ui.main.operation.OperationSelectFragment
 import java.io.OutputStreamWriter
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -106,6 +108,9 @@ class ReadingFragment : Fragment() {
         }
         binding.btnExportCsv.setOnClickListener {
             exportTagsToCsv()
+        }
+        binding.btnChangeOperation.setOnClickListener {
+            (requireActivity() as MainActivity).openOperationSelection()
         }
 
         binding.chipGroupLimit.setOnCheckedStateChangeListener { _, checkedIds ->

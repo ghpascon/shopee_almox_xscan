@@ -76,7 +76,7 @@ class XTrackConfigFragment : Fragment() {
             showSnackbar(getString(R.string.app_settings_saved))
         }
 
-        binding.autoLocation.setOnItemClickListener { _, _, position, _ ->
+        binding.autoLocationEntry.setOnItemClickListener { _, _, position, _ ->
             val option = locationOptions.getOrNull(position) ?: return@setOnItemClickListener
             val current = viewModel.uiState.value.appSettings
             val normalizedUrl = binding.editXtrackUrl.text?.toString()?.trim().orEmpty()
@@ -84,8 +84,23 @@ class XTrackConfigFragment : Fragment() {
             viewModel.saveAppSettings(
                 current.copy(
                     xtrackUrl = normalizedUrl,
-                    selectedLocationId = option.id,
-                    selectedLocationName = option.name
+                    entryLocationId = option.id,
+                    entryLocationName = option.name
+                )
+            )
+            showSnackbar(getString(R.string.app_settings_saved))
+        }
+
+        binding.autoLocationExit.setOnItemClickListener { _, _, position, _ ->
+            val option = locationOptions.getOrNull(position) ?: return@setOnItemClickListener
+            val current = viewModel.uiState.value.appSettings
+            val normalizedUrl = binding.editXtrackUrl.text?.toString()?.trim().orEmpty()
+
+            viewModel.saveAppSettings(
+                current.copy(
+                    xtrackUrl = normalizedUrl,
+                    exitLocationId = option.id,
+                    exitLocationName = option.name
                 )
             )
             showSnackbar(getString(R.string.app_settings_saved))
@@ -120,8 +135,10 @@ class XTrackConfigFragment : Fragment() {
         val updated = if (clearLocationIfUrlChanged && urlChanged) {
             current.copy(
                 xtrackUrl = normalizedUrl,
-                selectedLocationId = "",
-                selectedLocationName = ""
+                entryLocationId = "",
+                entryLocationName = "",
+                exitLocationId = "",
+                exitLocationName = ""
             )
         } else {
             current.copy(xtrackUrl = normalizedUrl)
@@ -131,10 +148,14 @@ class XTrackConfigFragment : Fragment() {
 
         if (clearLocationIfUrlChanged && urlChanged) {
             locationOptions = emptyList()
-            binding.autoLocation.setAdapter(
+            binding.autoLocationEntry.setAdapter(
                 ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, locationOptions)
             )
-            binding.autoLocation.setText("", false)
+            binding.autoLocationExit.setAdapter(
+                ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, locationOptions)
+            )
+            binding.autoLocationEntry.setText("", false)
+            binding.autoLocationExit.setText("", false)
             lastLoadedLocationsUrl = ""
         }
 
@@ -154,6 +175,7 @@ class XTrackConfigFragment : Fragment() {
 
         lastLoadedLocationsUrl = normalized
         binding.layoutLocation.isEnabled = false
+        binding.layoutLocationExit.isEnabled = false
         binding.btnReloadLocations.isEnabled = false
         binding.progressLocations.visibility = View.VISIBLE
         setTechnicalDetails(getString(R.string.xtrack_details_loading, normalized))
@@ -163,6 +185,7 @@ class XTrackConfigFragment : Fragment() {
             if (_binding == null) return@launch
 
             binding.layoutLocation.isEnabled = true
+            binding.layoutLocationExit.isEnabled = true
             binding.btnReloadLocations.isEnabled = true
             binding.progressLocations.visibility = View.GONE
 
@@ -199,23 +222,39 @@ class XTrackConfigFragment : Fragment() {
     private fun applyLocationOptions(locations: List<XTrackLocation>) {
         locationOptions = locations.map { LocationOption(id = it.id, name = it.name) }
         val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, locationOptions)
-        binding.autoLocation.setAdapter(adapter)
+        binding.autoLocationEntry.setAdapter(adapter)
+        binding.autoLocationExit.setAdapter(adapter)
     }
 
     private fun syncSelectedLocationText(settings: AppSettings) {
-        val selected = locationOptions.firstOrNull { it.id == settings.selectedLocationId }
-        val displayValue = when {
-            selected != null -> selected.toString()
-            settings.selectedLocationName.isNotBlank() && settings.selectedLocationId.isNotBlank() ->
-                "${settings.selectedLocationName} (${settings.selectedLocationId})"
-            settings.selectedLocationName.isNotBlank() -> settings.selectedLocationName
-            settings.selectedLocationId.isNotBlank() -> settings.selectedLocationId
+        val selectedEntry = locationOptions.firstOrNull { it.id == settings.entryLocationId }
+        val entryDisplayValue = when {
+            selectedEntry != null -> selectedEntry.toString()
+            settings.entryLocationName.isNotBlank() && settings.entryLocationId.isNotBlank() ->
+                "${settings.entryLocationName} (${settings.entryLocationId})"
+            settings.entryLocationName.isNotBlank() -> settings.entryLocationName
+            settings.entryLocationId.isNotBlank() -> settings.entryLocationId
             else -> ""
         }
 
-        val currentText = binding.autoLocation.text?.toString().orEmpty()
-        if (currentText != displayValue) {
-            binding.autoLocation.setText(displayValue, false)
+        val selectedExit = locationOptions.firstOrNull { it.id == settings.exitLocationId }
+        val exitDisplayValue = when {
+            selectedExit != null -> selectedExit.toString()
+            settings.exitLocationName.isNotBlank() && settings.exitLocationId.isNotBlank() ->
+                "${settings.exitLocationName} (${settings.exitLocationId})"
+            settings.exitLocationName.isNotBlank() -> settings.exitLocationName
+            settings.exitLocationId.isNotBlank() -> settings.exitLocationId
+            else -> ""
+        }
+
+        val currentEntryText = binding.autoLocationEntry.text?.toString().orEmpty()
+        if (currentEntryText != entryDisplayValue) {
+            binding.autoLocationEntry.setText(entryDisplayValue, false)
+        }
+
+        val currentExitText = binding.autoLocationExit.text?.toString().orEmpty()
+        if (currentExitText != exitDisplayValue) {
+            binding.autoLocationExit.setText(exitDisplayValue, false)
         }
     }
 

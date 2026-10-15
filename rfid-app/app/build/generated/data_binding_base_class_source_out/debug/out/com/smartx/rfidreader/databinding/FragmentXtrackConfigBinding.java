@@ -25,7 +25,10 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
   private final ScrollView rootView;
 
   @NonNull
-  public final AutoCompleteTextView autoLocation;
+  public final AutoCompleteTextView autoLocationEntry;
+
+  @NonNull
+  public final AutoCompleteTextView autoLocationExit;
 
   @NonNull
   public final MaterialButton btnReloadLocations;
@@ -40,6 +43,9 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
   public final TextInputLayout layoutLocation;
 
   @NonNull
+  public final TextInputLayout layoutLocationExit;
+
+  @NonNull
   public final TextInputLayout layoutXtrackUrl;
 
   @NonNull
@@ -52,17 +58,20 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
   public final TextView textXtrackDetailsTitle;
 
   private FragmentXtrackConfigBinding(@NonNull ScrollView rootView,
-      @NonNull AutoCompleteTextView autoLocation, @NonNull MaterialButton btnReloadLocations,
+      @NonNull AutoCompleteTextView autoLocationEntry,
+      @NonNull AutoCompleteTextView autoLocationExit, @NonNull MaterialButton btnReloadLocations,
       @NonNull MaterialButton btnSaveXtrack, @NonNull TextInputEditText editXtrackUrl,
-      @NonNull TextInputLayout layoutLocation, @NonNull TextInputLayout layoutXtrackUrl,
-      @NonNull ProgressBar progressLocations, @NonNull TextView textXtrackDetails,
-      @NonNull TextView textXtrackDetailsTitle) {
+      @NonNull TextInputLayout layoutLocation, @NonNull TextInputLayout layoutLocationExit,
+      @NonNull TextInputLayout layoutXtrackUrl, @NonNull ProgressBar progressLocations,
+      @NonNull TextView textXtrackDetails, @NonNull TextView textXtrackDetailsTitle) {
     this.rootView = rootView;
-    this.autoLocation = autoLocation;
+    this.autoLocationEntry = autoLocationEntry;
+    this.autoLocationExit = autoLocationExit;
     this.btnReloadLocations = btnReloadLocations;
     this.btnSaveXtrack = btnSaveXtrack;
     this.editXtrackUrl = editXtrackUrl;
     this.layoutLocation = layoutLocation;
+    this.layoutLocationExit = layoutLocationExit;
     this.layoutXtrackUrl = layoutXtrackUrl;
     this.progressLocations = progressLocations;
     this.textXtrackDetails = textXtrackDetails;
@@ -96,9 +105,15 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.autoLocation;
-      AutoCompleteTextView autoLocation = ViewBindings.findChildViewById(rootView, id);
-      if (autoLocation == null) {
+      id = R.id.autoLocationEntry;
+      AutoCompleteTextView autoLocationEntry = ViewBindings.findChildViewById(rootView, id);
+      if (autoLocationEntry == null) {
+        break missingId;
+      }
+
+      id = R.id.autoLocationExit;
+      AutoCompleteTextView autoLocationExit = ViewBindings.findChildViewById(rootView, id);
+      if (autoLocationExit == null) {
         break missingId;
       }
 
@@ -126,6 +141,12 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.layoutLocationExit;
+      TextInputLayout layoutLocationExit = ViewBindings.findChildViewById(rootView, id);
+      if (layoutLocationExit == null) {
+        break missingId;
+      }
+
       id = R.id.layoutXtrackUrl;
       TextInputLayout layoutXtrackUrl = ViewBindings.findChildViewById(rootView, id);
       if (layoutXtrackUrl == null) {
@@ -150,9 +171,10 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentXtrackConfigBinding((ScrollView) rootView, autoLocation,
-          btnReloadLocations, btnSaveXtrack, editXtrackUrl, layoutLocation, layoutXtrackUrl,
-          progressLocations, textXtrackDetails, textXtrackDetailsTitle);
+      return new FragmentXtrackConfigBinding((ScrollView) rootView, autoLocationEntry,
+          autoLocationExit, btnReloadLocations, btnSaveXtrack, editXtrackUrl, layoutLocation,
+          layoutLocationExit, layoutXtrackUrl, progressLocations, textXtrackDetails,
+          textXtrackDetailsTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

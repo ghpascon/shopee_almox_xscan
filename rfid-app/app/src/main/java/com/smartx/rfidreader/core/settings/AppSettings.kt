@@ -16,8 +16,11 @@ data class AppSettings(
     val rssiFilter: Int = -120,
     val prefixes: List<String> = emptyList(),
     val xtrackUrl: String = AppSettingsRepository.DEFAULT_XTRACK_URL,
-    val selectedLocationId: String = "",
-    val selectedLocationName: String = "",
+    val entryLocationId: String = "",
+    val entryLocationName: String = "",
+    val exitLocationId: String = "",
+    val exitLocationName: String = "",
+    val selectedOperation: OperationType = OperationType.NONE,
     val webhookUrl: String = "",
     val webhookIntervalSeconds: Int = 30,
     /** Último endereço MAC BLE selecionado (global) */
@@ -43,8 +46,14 @@ class AppSettingsRepository(context: Context) {
         private val KEY_PREFIXES = stringPreferencesKey("prefixes")
         private val KEY_LAST_BLE = stringPreferencesKey("last_ble_address")
         private val KEY_XTRACK_URL = stringPreferencesKey("xtrack_url")
-        private val KEY_LOCATION_ID = stringPreferencesKey("selected_location_id")
-        private val KEY_LOCATION_NAME = stringPreferencesKey("selected_location_name")
+        private val KEY_ENTRY_LOCATION_ID = stringPreferencesKey("entry_location_id")
+        private val KEY_ENTRY_LOCATION_NAME = stringPreferencesKey("entry_location_name")
+        private val KEY_EXIT_LOCATION_ID = stringPreferencesKey("exit_location_id")
+        private val KEY_EXIT_LOCATION_NAME = stringPreferencesKey("exit_location_name")
+        private val KEY_SELECTED_OPERATION = stringPreferencesKey("selected_operation")
+        // Compatibilidade com versões anteriores (uma localização única)
+        private val KEY_LEGACY_LOCATION_ID = stringPreferencesKey("selected_location_id")
+        private val KEY_LEGACY_LOCATION_NAME = stringPreferencesKey("selected_location_name")
         private val KEY_WEBHOOK = stringPreferencesKey("webhook_url")
         private val KEY_WEBHOOK_INTERVAL = intPreferencesKey("webhook_interval_seconds")
         private val KEY_READER_TX_POWER = intPreferencesKey("reader_tx_power")
@@ -57,6 +66,8 @@ class AppSettingsRepository(context: Context) {
         }
         .map { prefs ->
             val prefixStr = prefs[KEY_PREFIXES] ?: ""
+            val legacyLocationId = prefs[KEY_LEGACY_LOCATION_ID] ?: ""
+            val legacyLocationName = prefs[KEY_LEGACY_LOCATION_NAME] ?: ""
             AppSettings(
                 lastReaderId = prefs[KEY_READER_ID]?.takeIf { it.isNotBlank() } ?: DEFAULT_READER_ID,
                 buzzerEnabled = prefs[KEY_BUZZER] ?: true,
@@ -64,8 +75,11 @@ class AppSettingsRepository(context: Context) {
                 prefixes = if (prefixStr.isBlank()) emptyList()
                            else prefixStr.split("|").filter { it.isNotBlank() },
                 xtrackUrl = prefs[KEY_XTRACK_URL]?.takeIf { it.isNotBlank() } ?: DEFAULT_XTRACK_URL,
-                selectedLocationId = prefs[KEY_LOCATION_ID] ?: "",
-                selectedLocationName = prefs[KEY_LOCATION_NAME] ?: "",
+                entryLocationId = prefs[KEY_ENTRY_LOCATION_ID] ?: legacyLocationId,
+                entryLocationName = prefs[KEY_ENTRY_LOCATION_NAME] ?: legacyLocationName,
+                exitLocationId = prefs[KEY_EXIT_LOCATION_ID] ?: legacyLocationId,
+                exitLocationName = prefs[KEY_EXIT_LOCATION_NAME] ?: legacyLocationName,
+                selectedOperation = OperationType.fromValue(prefs[KEY_SELECTED_OPERATION]),
                 webhookUrl = prefs[KEY_WEBHOOK] ?: "",
                 webhookIntervalSeconds = prefs[KEY_WEBHOOK_INTERVAL] ?: 30,
                 lastBleAddress = prefs[KEY_LAST_BLE] ?: "",
@@ -81,8 +95,11 @@ class AppSettingsRepository(context: Context) {
             prefs[KEY_RSSI] = settings.rssiFilter
             prefs[KEY_PREFIXES] = settings.prefixes.joinToString("|")
             prefs[KEY_XTRACK_URL] = settings.xtrackUrl
-            prefs[KEY_LOCATION_ID] = settings.selectedLocationId
-            prefs[KEY_LOCATION_NAME] = settings.selectedLocationName
+            prefs[KEY_ENTRY_LOCATION_ID] = settings.entryLocationId
+            prefs[KEY_ENTRY_LOCATION_NAME] = settings.entryLocationName
+            prefs[KEY_EXIT_LOCATION_ID] = settings.exitLocationId
+            prefs[KEY_EXIT_LOCATION_NAME] = settings.exitLocationName
+            prefs[KEY_SELECTED_OPERATION] = settings.selectedOperation.value
             prefs[KEY_WEBHOOK] = settings.webhookUrl
             prefs[KEY_WEBHOOK_INTERVAL] = settings.webhookIntervalSeconds
             prefs[KEY_LAST_BLE] = settings.lastBleAddress

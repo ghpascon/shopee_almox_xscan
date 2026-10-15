@@ -1,20 +1,24 @@
 package com.smartx.rfidreader.ui.main
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.smartx.rfidreader.R
 import com.smartx.rfidreader.core.reader.RfidTag
 import com.smartx.rfidreader.core.reader.ReaderConnectionState
+import com.smartx.rfidreader.core.settings.OperationType
 import com.smartx.rfidreader.core.webhook.WebhookService
 import com.smartx.rfidreader.databinding.FragmentHomeBinding
 import kotlinx.coroutines.launch
@@ -77,7 +81,14 @@ class HomeFragment : Fragment() {
     private fun setupActions() {
         binding.btnConfirm.isEnabled = false
         binding.btnConfirm.setOnClickListener {
-            viewModel.confirmMoveLocation()
+            if (viewModel.uiState.value.appSettings.selectedOperation == OperationType.DISCARD) {
+                viewModel.requestDiscardConditions()
+            } else {
+                viewModel.confirmMoveLocation()
+            }
+        }
+        binding.btnChangeOperation.setOnClickListener {
+            (requireActivity() as MainActivity).openOperationSelection()
         }
     }
 
@@ -104,6 +115,7 @@ class HomeFragment : Fragment() {
                     viewModel.uiState.collect { state ->
                         isCurrentlyInventorying = state.isInventorying
                         updateHomeStatus(state)
+                        updateConfirmButtonLabel(state)
                         updateConfirmButtonState()
                     }
                 }
@@ -114,16 +126,123 @@ class HomeFragment : Fragment() {
                         activity.navigateTo(ConfirmResultFragment.newInstance(result))
                     }
                 }
+
+                launch {
+                    viewModel.discardConditionOptions.collect { options ->
+                        showDiscardReasonDialog(options)
+                    }
+                }
+
+                launch {
+                    viewModel.discardConditionError.collect { message ->
+                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+                    }
+                }
             }
         }
     }
 
     private fun updateConfirmButtonState() {
-        binding.btnConfirm.isEnabled =
+        val state = viewModel.uiState.value
+        val enabled = if (state.appSettings.selectedOperation == OperationType.DISCARD) {
+            !isCurrentlyInventorying &&
+                hasRegisteredTags &&
+                !state.isLoadingDiscardConditions
+        } else {
             currentTagCount > 0 &&
                 !isCurrentlyInventorying &&
                 allTagsWithDescription &&
                 hasRegisteredTags
+        }
+        binding.btnConfirm.isEnabled = enabled
+    }
+
+    private fun updateConfirmButtonLabel(state: MainUiState) {
+        val buttonText = when (state.appSettings.selectedOperation) {
+            OperationType.ENTRY -> getString(R.string.home_btn_confirm_entry)
+            OperationType.EXIT -> getString(R.string.home_btn_confirm_exit)
+            OperationType.DISCARD -> {
+                if (state.isLoadingDiscardConditions) getString(R.string.home_btn_loading_reasons)
+                else getString(R.string.home_btn_select_reason)
+            }
+            OperationType.NONE -> getString(R.string.home_btn_confirm)
+        }
+        binding.btnConfirm.text = buttonText
+
+        if (state.appSettings.selectedOperation == OperationType.DISCARD) {
+            binding.btnConfirm.backgroundTintList = AppCompatResources.getColorStateList(
+                requireContext(),
+                R.color.btn_confirm_discard_bg
+            )
+            binding.btnConfirm.setTextColor(
+                AppCompatResources.getColorStateList(
+                    requireContext(),
+                    R.color.btn_confirm_discard_text
+                )
+            )
+        } else {
+            binding.btnConfirm.backgroundTintList = AppCompatResources.getColorStateList(
+                requireContext(),
+                R.color.btn_confirm_default_bg
+            )
+            binding.btnConfirm.setTextColor(
+                AppCompatResources.getColorStateList(
+                    requireContext(),
+                    R.color.btn_confirm_default_text
+                )
+            )
+        }
+    }
+
+    private fun showDiscardReasonDialog(options: List<DiscardConditionOption>) {
+        if (options.isEmpty()) {
+            Snackbar.make(binding.root, getString(R.string.discard_reason_empty), Snackbar.LENGTH_LONG).show()
+            return
+        }
+
+        val labels = options.map { it.name }.toTypedArray()
+        var selectedIndex = -1
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.discard_reason_title)
+            .setSingleChoiceItems(labels, -1) { _, which ->
+                selectedIndex = which
+            }
+            .setNegativeButton(R.string.btn_cancel, null)
+            .setPositiveButton(R.string.btn_continue, null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val selected = options.getOrNull(selectedIndex)
+                if (selected == null) {
+                    Snackbar.make(binding.root, getString(R.string.discard_reason_required), Snackbar.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                dialog.dismiss()
+                showDiscardConfirmationDialog(selected)
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun showDiscardConfirmationDialog(condition: DiscardConditionOption) {
+        val piecesCount = viewModel.getRegisteredObjectCount()
+        val message = getString(
+            R.string.discard_confirm_message,
+            piecesCount,
+            condition.name
+        )
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.discard_confirm_title)
+            .setMessage(message)
+            .setNegativeButton(R.string.btn_cancel, null)
+            .setPositiveButton(R.string.btn_confirm_discard) { _, _ ->
+                viewModel.confirmMoveCondition(condition.name)
+            }
+            .show()
     }
 
     private fun updateUnregisteredTagsSection(tags: List<RfidTag>) {
