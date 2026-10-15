@@ -87,8 +87,14 @@ class XTrackConfigFragment : Fragment() {
         binding.autoLocationEntry.setOnClickListener {
             showLocationSearchDialog(isEntry = true)
         }
+        binding.layoutLocation.setOnClickListener {
+            showLocationSearchDialog(isEntry = true)
+        }
 
         binding.autoLocationExit.setOnClickListener {
+            showLocationSearchDialog(isEntry = false)
+        }
+        binding.layoutLocationExit.setOnClickListener {
             showLocationSearchDialog(isEntry = false)
         }
     }

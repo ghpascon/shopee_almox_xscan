@@ -71,17 +71,27 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/layoutLocation"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/hint_location_entry">
+                    android:hint="@string/hint_location_entry"
+                    android:minHeight="64dp"
+                    app:endIconMode="none">
 
                     <AutoCompleteTextView
                         android:id="@+id/autoLocationEntry"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:cursorVisible="false"
                         android:focusable="false"
-                        android:inputType="none" />
+                        android:focusableInTouchMode="false"
+                        android:gravity="center"
+                        android:inputType="none"
+                        android:minHeight="56dp"
+                        android:paddingTop="14dp"
+                        android:paddingBottom="14dp"
+                        android:textAlignment="center" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <TextView
@@ -102,17 +112,27 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/layoutLocationExit"
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="@string/hint_location_exit">
+                    android:hint="@string/hint_location_exit"
+                    android:minHeight="64dp"
+                    app:endIconMode="none">
 
                     <AutoCompleteTextView
                         android:id="@+id/autoLocationExit"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:clickable="true"
+                        android:cursorVisible="false"
                         android:focusable="false"
-                        android:inputType="none" />
+                        android:focusableInTouchMode="false"
+                        android:gravity="center"
+                        android:inputType="none"
+                        android:minHeight="56dp"
+                        android:paddingTop="14dp"
+                        android:paddingBottom="14dp"
+                        android:textAlignment="center" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <TextView

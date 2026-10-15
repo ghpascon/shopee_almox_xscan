@@ -60,10 +60,6 @@
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/color/btn_confirm_discard_text.xml"
     },
     {
-        "merged": "com.smartx.rfidreader.app-debug-61:/layout_dialog_location_search.xml.flat",
-        "source": "com.smartx.rfidreader.app-main-63:/layout/dialog_location_search.xml"
-    },
-    {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/layout_item_ble_device.xml.flat",
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/item_ble_device.xml"
     },
@@ -190,6 +186,10 @@
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/layout_dialog_zebra_transport.xml.flat",
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/dialog_zebra_transport.xml"
+    },
+    {
+        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/layout_dialog_location_search.xml.flat",
+        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/dialog_location_search.xml"
     },
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/drawable_bg_chip_inactive.xml.flat",
