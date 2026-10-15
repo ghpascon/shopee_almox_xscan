@@ -1,0 +1,16 @@
+package com.smartx.rfidreader.core.reader
+
+import java.util.Date
+
+data class RfidTag(
+    val epc: String,
+    val rssi: String = "",
+    val tid: String = "",
+    val user: String = "",
+    val antenna: Int = 1,
+    val readCount: Int = 1,
+    val timestamp: Date = Date(),
+    val description: String = "",
+    val objectIdCode: String = "",
+    val descriptionLookupError: Boolean = false
+)
