@@ -1,22 +1,30 @@
 package com.smartx.rfidreader.ui.main.config
 
+import android.app.AlertDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import android.widget.ListView
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
 import com.smartx.rfidreader.R
 import com.smartx.rfidreader.core.settings.AppSettings
 import com.smartx.rfidreader.core.xtrack.XTrackLocation
 import com.smartx.rfidreader.core.xtrack.xtrack_manager
 import com.smartx.rfidreader.databinding.FragmentXtrackConfigBinding
 import com.smartx.rfidreader.ui.main.MainViewModel
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 class XTrackConfigFragment : Fragment() {
@@ -76,34 +84,12 @@ class XTrackConfigFragment : Fragment() {
             showSnackbar(getString(R.string.app_settings_saved))
         }
 
-        binding.autoLocationEntry.setOnItemClickListener { _, _, position, _ ->
-            val option = locationOptions.getOrNull(position) ?: return@setOnItemClickListener
-            val current = viewModel.uiState.value.appSettings
-            val normalizedUrl = binding.editXtrackUrl.text?.toString()?.trim().orEmpty()
-
-            viewModel.saveAppSettings(
-                current.copy(
-                    xtrackUrl = normalizedUrl,
-                    entryLocationId = option.id,
-                    entryLocationName = option.name
-                )
-            )
-            showSnackbar(getString(R.string.app_settings_saved))
+        binding.autoLocationEntry.setOnClickListener {
+            showLocationSearchDialog(isEntry = true)
         }
 
-        binding.autoLocationExit.setOnItemClickListener { _, _, position, _ ->
-            val option = locationOptions.getOrNull(position) ?: return@setOnItemClickListener
-            val current = viewModel.uiState.value.appSettings
-            val normalizedUrl = binding.editXtrackUrl.text?.toString()?.trim().orEmpty()
-
-            viewModel.saveAppSettings(
-                current.copy(
-                    xtrackUrl = normalizedUrl,
-                    exitLocationId = option.id,
-                    exitLocationName = option.name
-                )
-            )
-            showSnackbar(getString(R.string.app_settings_saved))
+        binding.autoLocationExit.setOnClickListener {
+            showLocationSearchDialog(isEntry = false)
         }
     }
 
@@ -148,12 +134,6 @@ class XTrackConfigFragment : Fragment() {
 
         if (clearLocationIfUrlChanged && urlChanged) {
             locationOptions = emptyList()
-            binding.autoLocationEntry.setAdapter(
-                ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, locationOptions)
-            )
-            binding.autoLocationExit.setAdapter(
-                ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, locationOptions)
-            )
             binding.autoLocationEntry.setText("", false)
             binding.autoLocationExit.setText("", false)
             lastLoadedLocationsUrl = ""
@@ -221,9 +201,90 @@ class XTrackConfigFragment : Fragment() {
 
     private fun applyLocationOptions(locations: List<XTrackLocation>) {
         locationOptions = locations.map { LocationOption(id = it.id, name = it.name) }
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, locationOptions)
-        binding.autoLocationEntry.setAdapter(adapter)
-        binding.autoLocationExit.setAdapter(adapter)
+    }
+
+    private fun filterLocationOptions(query: String): List<LocationOption> {
+        val normalized = query.trim().lowercase(Locale.ROOT)
+        if (normalized.isBlank()) return locationOptions
+
+        return locationOptions.filter { option ->
+            option.id.lowercase(Locale.ROOT).contains(normalized) ||
+                option.name.lowercase(Locale.ROOT).contains(normalized) ||
+                option.toString().lowercase(Locale.ROOT).contains(normalized)
+        }
+    }
+
+    private fun showLocationSearchDialog(isEntry: Boolean) {
+        if (locationOptions.isEmpty()) {
+            showSnackbar(getString(R.string.error_load_locations, "nenhuma localização carregada"))
+            return
+        }
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_location_search, null)
+        val searchInput = dialogView.findViewById<TextInputEditText>(R.id.editDialogSearchLocation)
+        val listView = dialogView.findViewById<ListView>(R.id.listDialogLocations)
+
+        var filtered = locationOptions
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, filtered.toMutableList())
+        listView.adapter = adapter
+
+        searchInput.addTextChangedListener { text ->
+            filtered = filterLocationOptions(text?.toString().orEmpty())
+            adapter.clear()
+            adapter.addAll(filtered)
+            adapter.notifyDataSetChanged()
+        }
+
+        val titleRes = if (isEntry) R.string.label_location_entry else R.string.label_location_exit
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(titleRes)
+            .setView(dialogView)
+            .setNegativeButton(R.string.btn_cancel, null)
+            .create()
+
+        listView.setOnItemClickListener { _, _, position, _ ->
+            val option = filtered.getOrNull(position) ?: return@setOnItemClickListener
+            saveSelectedLocation(option, isEntry)
+            dialog.dismiss()
+        }
+
+        dialog.setOnShowListener {
+            searchInput.requestFocus()
+            val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            searchInput.post {
+                imm?.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT)
+            }
+        }
+
+        dialog.setOnDismissListener {
+            val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.hideSoftInputFromWindow(searchInput.windowToken, 0)
+        }
+
+        dialog.show()
+    }
+
+    private fun saveSelectedLocation(option: LocationOption, isEntry: Boolean) {
+        val current = viewModel.uiState.value.appSettings
+        val normalizedUrl = binding.editXtrackUrl.text?.toString()?.trim().orEmpty()
+
+        val updatedSettings = if (isEntry) {
+            current.copy(
+                xtrackUrl = normalizedUrl,
+                entryLocationId = option.id,
+                entryLocationName = option.name
+            )
+        } else {
+            current.copy(
+                xtrackUrl = normalizedUrl,
+                exitLocationId = option.id,
+                exitLocationName = option.name
+            )
+        }
+
+        viewModel.saveAppSettings(updatedSettings)
+        showSnackbar(getString(R.string.app_settings_saved))
     }
 
     private fun syncSelectedLocationText(settings: AppSettings) {

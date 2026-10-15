@@ -41,6 +41,7 @@
     <string name="helper_location_entry">Destino usado nas confirmações de entrada</string>
     <string name="label_location_exit">Localização de saída</string>
     <string name="hint_location_exit">Selecionar localização de saída</string>
+    <string name="hint_search_location">Pesquisar localização</string>
     <string name="helper_location_exit">Destino usado nas confirmações de saída</string>
     <string name="btn_apply_config">Aplicar</string>
     <string name="btn_reload_config">Recarregar</string>

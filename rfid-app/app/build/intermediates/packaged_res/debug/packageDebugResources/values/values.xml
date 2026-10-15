@@ -168,6 +168,7 @@
     <string name="hint_location_exit">Selecionar localização de saída</string>
     <string name="hint_power">Potência (dBm)</string>
     <string name="hint_prefix">Ex: E200 ou 3000</string>
+    <string name="hint_search_location">Pesquisar localização</string>
     <string name="hint_webhook_url">URL do Webhook</string>
     <string name="hint_xtrack_url">xtrack_url</string>
     <string name="home_btn_confirm">Confirmar operação</string>

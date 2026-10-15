@@ -3449,6 +3449,7 @@ id easeInOut
 id easeOut
 id east
 id edge
+id editDialogSearchLocation
 id editDialogWebhookUrl
 id editEpc
 id editPassword
@@ -3542,6 +3543,7 @@ id jumpToStart
 id labelSession
 id labeled
 id layout
+id layoutDialogSearchLocation
 id layoutDialogWebhookUrl
 id layoutEpcInput
 id layoutLocation
@@ -3559,6 +3561,7 @@ id limitBar
 id line1
 id line3
 id linear
+id listDialogLocations
 id listMode
 id list_item
 id m3_side_sheet
@@ -4043,6 +4046,7 @@ layout design_text_input_start_icon
 layout dialog_ble_scan
 layout dialog_connection_log
 layout dialog_inventory_name
+layout dialog_location_search
 layout dialog_radar_scan
 layout dialog_webhook_config
 layout dialog_zebra_transport
@@ -4334,6 +4338,7 @@ string hint_location_entry
 string hint_location_exit
 string hint_power
 string hint_prefix
+string hint_search_location
 string hint_webhook_url
 string hint_xtrack_url
 string home_btn_confirm

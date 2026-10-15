@@ -145,6 +145,7 @@ id chipBle
 id chipGroupLimit
 id chipGroupPrefixes
 id chipStatus
+id editDialogSearchLocation
 id editDialogWebhookUrl
 id editEpc
 id editPassword
@@ -174,6 +175,7 @@ id inputLayoutInventoryName
 id inputWebhookInterval
 id inputWebhookUrl
 id labelSession
+id layoutDialogSearchLocation
 id layoutDialogWebhookUrl
 id layoutEpcInput
 id layoutLocation
@@ -184,6 +186,7 @@ id layoutSyncProgress
 id layoutUsername
 id layoutXtrackUrl
 id limitBar
+id listDialogLocations
 id progressBar
 id progressBleScan
 id progressConnect
@@ -274,6 +277,7 @@ layout activity_sync
 layout dialog_ble_scan
 layout dialog_connection_log
 layout dialog_inventory_name
+layout dialog_location_search
 layout dialog_radar_scan
 layout dialog_webhook_config
 layout dialog_zebra_transport
@@ -404,6 +408,7 @@ string hint_location_entry
 string hint_location_exit
 string hint_power
 string hint_prefix
+string hint_search_location
 string hint_webhook_url
 string hint_xtrack_url
 string home_btn_confirm
