@@ -383,50 +383,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         }
         viewModelScope.launch {
             r.tagFlow.collect { tag ->
-                val settings = _uiState.value.appSettings
-
-                // Filtro de prefixo
-                val prefixes = settings.prefixes
-                if (prefixes.isNotEmpty() && prefixes.none { tag.epc.startsWith(it, ignoreCase = true) }) {
-                    return@collect
-                }
-
-                // Filtro de tamanho de EPC
-                val epcLengths = settings.epcLengths
-                if (epcLengths.isNotEmpty() && tag.epc.length !in epcLengths) {
-                    return@collect
-                }
-
-                // Filtro RSSI
-                val rssiVal = tag.rssi.toDoubleOrNull()
-                if (rssiVal != null && rssiVal < settings.rssiFilter) return@collect
-
-                val existing = _tagMap[tag.epc]
-                val isNew = existing == null
-                if (isNew) {
-                    _tagMap[tag.epc] = tag
-                } else {
-                    _tagMap[tag.epc] = existing!!.copy(
-                        readCount = existing.readCount + 1,
-                        rssi = tag.rssi,
-                        timestamp = tag.timestamp
-                    )
-                }
-
-                // Marca dirty — a UI será atualizada pelo ticker de 200 ms
-                _tagsDirty = true
-
-                // Emite o evento individual para o radar (SharedFlow — safe para múltiplos collectors)
-                _tagEventFlow.tryEmit(tag)
-
-                // Buzzer para qualquer tag lida, com cooldown de 50 ms
-                if (settings.buzzerEnabled) {
-                    val now = System.currentTimeMillis()
-                    if (now - _lastBuzzerMs >= 100L) {
-                        _lastBuzzerMs = now
-                        _buzzerEvent.tryEmit(Unit)
-                    }
-                }
+                ingestTag(tag)
             }
         }
         // Ticker: atualiza a lista na UI no máximo a cada 200 ms
@@ -556,6 +513,74 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         isResolvingTagDescriptions = false
         hasDescriptionLookupConnectionFailure = false
         lastDescriptionResolveAtMs = 0L
+    }
+
+    fun addManualBarcodeAsEpc(rawBarcode: String): String? {
+        val app = getApplication<Application>()
+        val normalizedEpc = rawBarcode.trim().uppercase(Locale.ROOT)
+        if (normalizedEpc.isBlank()) {
+            return app.getString(R.string.manual_epc_empty)
+        }
+
+        val accepted = ingestTag(
+            RfidTag(
+                epc = normalizedEpc,
+                rssi = ""
+            )
+        )
+
+        if (!accepted) {
+            return app.getString(R.string.manual_epc_filtered)
+        }
+        return null
+    }
+
+    private fun ingestTag(tag: RfidTag): Boolean {
+        val settings = _uiState.value.appSettings
+
+        // Filtro de prefixo
+        val prefixes = settings.prefixes
+        if (prefixes.isNotEmpty() && prefixes.none { tag.epc.startsWith(it, ignoreCase = true) }) {
+            return false
+        }
+
+        // Filtro de tamanho de EPC
+        val epcLengths = settings.epcLengths
+        if (epcLengths.isNotEmpty() && tag.epc.length !in epcLengths) {
+            return false
+        }
+
+        // Filtro RSSI
+        val rssiVal = tag.rssi.toDoubleOrNull()
+        if (rssiVal != null && rssiVal < settings.rssiFilter) return false
+
+        val existing = _tagMap[tag.epc]
+        if (existing == null) {
+            _tagMap[tag.epc] = tag
+        } else {
+            _tagMap[tag.epc] = existing.copy(
+                readCount = existing.readCount + 1,
+                rssi = tag.rssi,
+                timestamp = tag.timestamp
+            )
+        }
+
+        // Marca dirty — a UI será atualizada pelo ticker de 200 ms
+        _tagsDirty = true
+
+        // Emite o evento individual para o radar (SharedFlow — safe para múltiplos collectors)
+        _tagEventFlow.tryEmit(tag)
+
+        // Buzzer para qualquer tag lida, com cooldown de 100 ms
+        if (settings.buzzerEnabled) {
+            val now = System.currentTimeMillis()
+            if (now - _lastBuzzerMs >= 100L) {
+                _lastBuzzerMs = now
+                _buzzerEvent.tryEmit(Unit)
+            }
+        }
+
+        return true
     }
 
     fun stopInventory() {

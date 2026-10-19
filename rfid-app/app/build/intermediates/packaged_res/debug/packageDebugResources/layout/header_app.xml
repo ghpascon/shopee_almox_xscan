@@ -38,6 +38,20 @@
             android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
             android:textColor="?attr/colorOnSurface"
             android:fontFamily="sans-serif-medium" />
+
+        <TextView
+            android:id="@+id/headerHomeButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:contentDescription="@string/header_home"
+            android:focusable="true"
+            android:gravity="center"
+            android:padding="0dp"
+            android:text="🏠"
+            android:textSize="20sp" />
     </LinearLayout>
 
     <!-- Badge row: selected reader + connection status -->

@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import com.smartx.rfidreader.R
 import com.smartx.rfidreader.core.reader.RfidTag
-import com.smartx.rfidreader.core.reader.ReaderConnectionState
 import com.smartx.rfidreader.core.settings.OperationType
 import com.smartx.rfidreader.core.webhook.WebhookService
 import com.smartx.rfidreader.databinding.FragmentHomeBinding
@@ -87,8 +86,11 @@ class HomeFragment : Fragment() {
                 viewModel.confirmMoveLocation()
             }
         }
-        binding.btnChangeOperation.setOnClickListener {
-            (requireActivity() as MainActivity).openOperationSelection()
+        binding.btnAddManualHome.setOnClickListener {
+            ManualBarcodeScanDialogFragment().show(
+                parentFragmentManager,
+                "manual_barcode_scan"
+            )
         }
         binding.btnUnregisteredInfo.setOnClickListener {
             showEpcListDialog(
@@ -123,7 +125,6 @@ class HomeFragment : Fragment() {
                 launch {
                     viewModel.uiState.collect { state ->
                         isCurrentlyInventorying = state.isInventorying
-                        updateHomeStatus(state)
                         updateConfirmButtonLabel(state)
                         updateConfirmButtonState()
                     }
@@ -287,26 +288,6 @@ class HomeFragment : Fragment() {
             .setItems(epcs.toTypedArray(), null)
             .setPositiveButton(R.string.btn_log_close, null)
             .show()
-    }
-
-    private fun updateHomeStatus(state: MainUiState) {
-        val statusText = when {
-            state.isInventorying -> "Lendo"
-            state.connectionState == ReaderConnectionState.CONNECTING -> "Conectando..."
-            state.connectionState == ReaderConnectionState.CONNECTED -> "Conectado"
-            state.connectionState == ReaderConnectionState.ERROR -> "Erro"
-            else -> "Desconectado"
-        }
-
-        val statusDrawable = when {
-            state.isInventorying -> R.drawable.ic_status_active
-            state.connectionState == ReaderConnectionState.CONNECTED -> R.drawable.ic_status_connected
-            state.connectionState == ReaderConnectionState.CONNECTING -> R.drawable.ic_status_connected
-            else -> R.drawable.ic_status_disconnected
-        }
-
-        binding.textStatusHome.text = statusText
-        binding.statusDot.setBackgroundResource(statusDrawable)
     }
 
     override fun onDestroyView() {

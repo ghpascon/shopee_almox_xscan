@@ -276,4 +276,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         loadLogin()
     }
 
+    override fun onHeaderHomePressed() {
+        if (viewModel.uiState.value.isAuthenticated) {
+            openOperationSelection()
+        } else {
+            goHome()
+        }
+    }
+
 }

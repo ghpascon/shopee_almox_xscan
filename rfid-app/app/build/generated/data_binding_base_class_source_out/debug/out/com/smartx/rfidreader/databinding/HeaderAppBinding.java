@@ -27,6 +27,9 @@ public final class HeaderAppBinding implements ViewBinding {
   public final TextView headerConnectionStatus;
 
   @NonNull
+  public final TextView headerHomeButton;
+
+  @NonNull
   public final ImageView headerLogo;
 
   @NonNull
@@ -39,12 +42,13 @@ public final class HeaderAppBinding implements ViewBinding {
   public final TextView headerTitle;
 
   private HeaderAppBinding(@NonNull LinearLayout rootView, @NonNull LinearLayout headerBadgeRow,
-      @NonNull TextView headerConnectionStatus, @NonNull ImageView headerLogo,
-      @NonNull TextView headerReaderName, @NonNull View headerStatusDot,
-      @NonNull TextView headerTitle) {
+      @NonNull TextView headerConnectionStatus, @NonNull TextView headerHomeButton,
+      @NonNull ImageView headerLogo, @NonNull TextView headerReaderName,
+      @NonNull View headerStatusDot, @NonNull TextView headerTitle) {
     this.rootView = rootView;
     this.headerBadgeRow = headerBadgeRow;
     this.headerConnectionStatus = headerConnectionStatus;
+    this.headerHomeButton = headerHomeButton;
     this.headerLogo = headerLogo;
     this.headerReaderName = headerReaderName;
     this.headerStatusDot = headerStatusDot;
@@ -90,6 +94,12 @@ public final class HeaderAppBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.headerHomeButton;
+      TextView headerHomeButton = ViewBindings.findChildViewById(rootView, id);
+      if (headerHomeButton == null) {
+        break missingId;
+      }
+
       id = R.id.headerLogo;
       ImageView headerLogo = ViewBindings.findChildViewById(rootView, id);
       if (headerLogo == null) {
@@ -115,7 +125,7 @@ public final class HeaderAppBinding implements ViewBinding {
       }
 
       return new HeaderAppBinding((LinearLayout) rootView, headerBadgeRow, headerConnectionStatus,
-          headerLogo, headerReaderName, headerStatusDot, headerTitle);
+          headerHomeButton, headerLogo, headerReaderName, headerStatusDot, headerTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

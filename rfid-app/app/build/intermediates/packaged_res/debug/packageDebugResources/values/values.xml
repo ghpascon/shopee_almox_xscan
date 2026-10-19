@@ -80,6 +80,7 @@
     <string name="ble_scan_title">Dispositivos Bluetooth</string>
     <string name="ble_scanning">Escaneando…</string>
     <string name="btn_add_epc_len">Adicionar</string>
+    <string name="btn_add_manual">Adicionar manualmente</string>
     <string name="btn_add_prefix">Adicionar</string>
     <string name="btn_apply_config">Aplicar</string>
     <string name="btn_back_home">Voltar para home</string>
@@ -157,6 +158,7 @@
     <string name="footer_user_logged_with_location">Logado: %1$s | Local: %2$s</string>
     <string name="footer_user_logged_with_operation_location">Logado: %1$s | %2$s: %3$s</string>
     <string name="footer_user_not_authenticated">Não autenticado</string>
+    <string name="header_home">Voltar para home</string>
     <string name="header_title_with_operation">ALMOX - %1$s</string>
     <string name="helper_buzzer">Emite um bipe ao detectar nova tag</string>
     <string name="helper_epc_len">Informe os tamanhos aceitos. Se vazio, todos os tamanhos são permitidos</string>
@@ -224,6 +226,12 @@
     <string name="login_prereq_xtrack_url">definir xtrack_url</string>
     <string name="login_recebimento">almox</string>
     <string name="login_title">Entrar</string>
+    <string name="manual_epc_empty">Nenhum valor lido</string>
+    <string name="manual_epc_filtered">Valor lido não passou nos filtros atuais</string>
+    <string name="manual_scan_dialog_added_value">EPC adicionado: %1$s</string>
+    <string name="manual_scan_dialog_hint">Use o scanner físico. O valor lido será tratado como EPC automaticamente.</string>
+    <string name="manual_scan_dialog_title">Escaneie o código de barras</string>
+    <string name="manual_scan_dialog_waiting">Aguardando leitura...</string>
     <string name="move_condition_error_connection">Falha na conexão com o XTrack</string>
     <string name="move_location_error_connection">Falha na conexão com o XTrack</string>
     <string name="move_location_error_location_missing">Localização não definida para envio</string>

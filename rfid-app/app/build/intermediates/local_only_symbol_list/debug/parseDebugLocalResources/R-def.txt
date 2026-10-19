@@ -50,6 +50,7 @@ dimen reader_icon_size
 drawable badge_background
 drawable bg_chip_inactive
 drawable bg_spinner
+drawable ic_header_home
 drawable ic_launcher_foreground
 drawable ic_nav_config
 drawable ic_nav_reader
@@ -72,6 +73,8 @@ id autoLocationExit
 id baseContent
 id bottomBar
 id btnAddEpcLength
+id btnAddManualHome
+id btnAddManualReading
 id btnAddPrefix
 id btnAddSelected
 id btnAddTarget
@@ -153,6 +156,7 @@ id editDialogSearchLocation
 id editDialogWebhookUrl
 id editEpc
 id editEpcLength
+id editManualScanCapture
 id editPassword
 id editPrefix
 id editUsername
@@ -166,6 +170,7 @@ id fragmentContainer
 id headerApp
 id headerBadgeRow
 id headerConnectionStatus
+id headerHomeButton
 id headerLogo
 id headerReaderName
 id headerStatusDot
@@ -219,8 +224,6 @@ id sliderPower
 id sliderRssi
 id spinnerSession
 id statusBanner
-id statusDot
-id statusRow
 id switchBuzzer
 id textBleAddress
 id textBleName
@@ -236,6 +239,9 @@ id textFoundCount
 id textLog
 id textLogTitle
 id textLoginBlockReason
+id textManualScanHint
+id textManualScanLastValue
+id textManualScanTitle
 id textMessage
 id textNoTargets
 id textPendingCount
@@ -255,7 +261,6 @@ id textScanEpc
 id textScanRssi
 id textSendingStatus
 id textStatusDetail
-id textStatusHome
 id textStatusTime
 id textSubtitle
 id textSyncItemLabel
@@ -284,6 +289,7 @@ layout dialog_ble_scan
 layout dialog_connection_log
 layout dialog_inventory_name
 layout dialog_location_search
+layout dialog_manual_barcode_scan
 layout dialog_radar_scan
 layout dialog_webhook_config
 layout dialog_zebra_transport
@@ -326,6 +332,7 @@ string ble_scan_done
 string ble_scan_title
 string ble_scanning
 string btn_add_epc_len
+string btn_add_manual
 string btn_add_prefix
 string btn_apply_config
 string btn_back_home
@@ -403,6 +410,7 @@ string footer_user_logged
 string footer_user_logged_with_location
 string footer_user_logged_with_operation_location
 string footer_user_not_authenticated
+string header_home
 string header_title_with_operation
 string helper_buzzer
 string helper_epc_len
@@ -470,6 +478,12 @@ string login_prereq_reader_connected
 string login_prereq_xtrack_url
 string login_recebimento
 string login_title
+string manual_epc_empty
+string manual_epc_filtered
+string manual_scan_dialog_added_value
+string manual_scan_dialog_hint
+string manual_scan_dialog_title
+string manual_scan_dialog_waiting
 string move_condition_error_connection
 string move_location_error_connection
 string move_location_error_location_missing

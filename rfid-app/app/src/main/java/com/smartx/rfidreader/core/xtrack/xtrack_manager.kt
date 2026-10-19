@@ -57,8 +57,6 @@ object xtrack_manager {
 
     private const val TAG = "xtrack_manager"
 
-    private const val GET_USER_PAYLOAD = "<msg><command>GetUser</command><terminal>ERP</terminal></msg>"
-
     private const val GET_LOCATION_PAYLOAD = "<msg><command>GetLocation</command><terminal>ERP</terminal></msg>"
     private const val GET_CONDITION_PAYLOAD = "<msg><command>GetCondition</command><terminal>SAPext</terminal></msg>"
 
@@ -97,7 +95,7 @@ object xtrack_manager {
         }
 
         return@withContext runCatching {
-            val usersXml = postXml(url, GET_USER_PAYLOAD)
+            val usersXml = postXml(url, buildGetUserPayload(normalizedLogin))
             val users = parseDataRows(usersXml)
 
             val hashedPassword = md5Upper(normalizedPassword)
@@ -485,6 +483,10 @@ object xtrack_manager {
             "<object><EPC>${xmlEscape(epc)}</EPC></object>"
         }
         return "<msg><command>$GET_OBJECT_COMMAND</command><terminal>ERP</terminal><data>$objectsXml</data></msg>"
+    }
+
+    private fun buildGetUserPayload(login: String): String {
+        return "<msg><command>GetUser</command><terminal>ERP</terminal><data><user><LOGIN>${xmlEscape(login)}</LOGIN></user></data></msg>"
     }
 
     private fun buildMoveLocationPayload(objectIdCodes: List<String>, locationName: String): String {

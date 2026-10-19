@@ -1,9 +1,0 @@
-mudanças
-tela de leitura:
-mostrar no total a qtd de cadastradas e qtd de não cadastradas (ao inves do total de uma vez)
-o de nao cadastradas nao mostre em baixo, adicione um botao simples ao lado do numero de nao cadastradas onde possamos clicar para ver os epcs,
-as cadastradas agrupe por descrição e deixe um botao simples onde possa clicar para ver os epcs (nao precisa mostrar o idcode) tbm, o botao pode ser tipo um i ℹ️
-
-nas configs adicione uma nova, chamada "epc_len" que será uma lista de comprimentos de EPCs válidos.
-posso adicionar sempelhante ao prefixo mas com o tamanhgo dos epcs que pode ser (caso nao coloque nada aceite todos)
-

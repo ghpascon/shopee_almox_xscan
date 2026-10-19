@@ -80,6 +80,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             xtrack_manager.logout()
             onLogoutPressed()
         }
+        _baseBinding.headerApp.headerHomeButton.setOnClickListener {
+            onHeaderHomePressed()
+        }
 
         // Observa o estado global do leitor — atualiza header em TODAS as telas automaticamente
         observeReaderState()
@@ -172,6 +175,8 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     }
 
     protected open fun onLogoutPressed() {}
+
+    protected open fun onHeaderHomePressed() {}
 
     /**
      * Retorna o ViewBinding do layout específico desta tela.

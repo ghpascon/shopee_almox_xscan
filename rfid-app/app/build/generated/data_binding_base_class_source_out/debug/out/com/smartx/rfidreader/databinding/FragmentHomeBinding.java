@@ -4,7 +4,6 @@ package com.smartx.rfidreader.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,7 +24,7 @@ public final class FragmentHomeBinding implements ViewBinding {
   private final ConstraintLayout rootView;
 
   @NonNull
-  public final MaterialButton btnChangeOperation;
+  public final MaterialButton btnAddManualHome;
 
   @NonNull
   public final MaterialButton btnConfirm;
@@ -46,39 +45,26 @@ public final class FragmentHomeBinding implements ViewBinding {
   public final NestedScrollView scrollHomeContent;
 
   @NonNull
-  public final View statusDot;
-
-  @NonNull
-  public final LinearLayout statusRow;
-
-  @NonNull
   public final TextView textRegisteredCount;
-
-  @NonNull
-  public final TextView textStatusHome;
 
   @NonNull
   public final TextView textUnregisteredCount;
 
   private FragmentHomeBinding(@NonNull ConstraintLayout rootView,
-      @NonNull MaterialButton btnChangeOperation, @NonNull MaterialButton btnConfirm,
+      @NonNull MaterialButton btnAddManualHome, @NonNull MaterialButton btnConfirm,
       @NonNull MaterialButton btnUnregisteredInfo, @NonNull MaterialCardView cardTags,
       @NonNull MaterialCardView cardTotalLido, @NonNull RecyclerView recyclerEpcs,
-      @NonNull NestedScrollView scrollHomeContent, @NonNull View statusDot,
-      @NonNull LinearLayout statusRow, @NonNull TextView textRegisteredCount,
-      @NonNull TextView textStatusHome, @NonNull TextView textUnregisteredCount) {
+      @NonNull NestedScrollView scrollHomeContent, @NonNull TextView textRegisteredCount,
+      @NonNull TextView textUnregisteredCount) {
     this.rootView = rootView;
-    this.btnChangeOperation = btnChangeOperation;
+    this.btnAddManualHome = btnAddManualHome;
     this.btnConfirm = btnConfirm;
     this.btnUnregisteredInfo = btnUnregisteredInfo;
     this.cardTags = cardTags;
     this.cardTotalLido = cardTotalLido;
     this.recyclerEpcs = recyclerEpcs;
     this.scrollHomeContent = scrollHomeContent;
-    this.statusDot = statusDot;
-    this.statusRow = statusRow;
     this.textRegisteredCount = textRegisteredCount;
-    this.textStatusHome = textStatusHome;
     this.textUnregisteredCount = textUnregisteredCount;
   }
 
@@ -109,9 +95,9 @@ public final class FragmentHomeBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.btnChangeOperation;
-      MaterialButton btnChangeOperation = ViewBindings.findChildViewById(rootView, id);
-      if (btnChangeOperation == null) {
+      id = R.id.btnAddManualHome;
+      MaterialButton btnAddManualHome = ViewBindings.findChildViewById(rootView, id);
+      if (btnAddManualHome == null) {
         break missingId;
       }
 
@@ -151,27 +137,9 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.statusDot;
-      View statusDot = ViewBindings.findChildViewById(rootView, id);
-      if (statusDot == null) {
-        break missingId;
-      }
-
-      id = R.id.statusRow;
-      LinearLayout statusRow = ViewBindings.findChildViewById(rootView, id);
-      if (statusRow == null) {
-        break missingId;
-      }
-
       id = R.id.textRegisteredCount;
       TextView textRegisteredCount = ViewBindings.findChildViewById(rootView, id);
       if (textRegisteredCount == null) {
-        break missingId;
-      }
-
-      id = R.id.textStatusHome;
-      TextView textStatusHome = ViewBindings.findChildViewById(rootView, id);
-      if (textStatusHome == null) {
         break missingId;
       }
 
@@ -181,9 +149,9 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentHomeBinding((ConstraintLayout) rootView, btnChangeOperation, btnConfirm,
-          btnUnregisteredInfo, cardTags, cardTotalLido, recyclerEpcs, scrollHomeContent, statusDot,
-          statusRow, textRegisteredCount, textStatusHome, textUnregisteredCount);
+      return new FragmentHomeBinding((ConstraintLayout) rootView, btnAddManualHome, btnConfirm,
+          btnUnregisteredInfo, cardTags, cardTotalLido, recyclerEpcs, scrollHomeContent,
+          textRegisteredCount, textUnregisteredCount);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

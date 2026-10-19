@@ -30,6 +30,7 @@ import com.smartx.rfidreader.R
 import com.smartx.rfidreader.core.reader.ReaderConnectionState
 import com.smartx.rfidreader.core.reader.RfidTag
 import com.smartx.rfidreader.databinding.FragmentReadingBinding
+import com.smartx.rfidreader.ui.main.ManualBarcodeScanDialogFragment
 import com.smartx.rfidreader.ui.main.MainActivity
 import com.smartx.rfidreader.ui.main.MainViewModel
 import com.smartx.rfidreader.ui.main.operation.OperationSelectFragment
@@ -111,6 +112,12 @@ class ReadingFragment : Fragment() {
         }
         binding.btnChangeOperation.setOnClickListener {
             (requireActivity() as MainActivity).openOperationSelection()
+        }
+        binding.btnAddManualReading.setOnClickListener {
+            ManualBarcodeScanDialogFragment().show(
+                parentFragmentManager,
+                "manual_barcode_scan"
+            )
         }
 
         binding.chipGroupLimit.setOnCheckedStateChangeListener { _, checkedIds ->

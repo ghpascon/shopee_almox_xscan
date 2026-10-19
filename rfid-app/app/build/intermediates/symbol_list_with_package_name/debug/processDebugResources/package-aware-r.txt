@@ -3095,6 +3095,7 @@ drawable ic_call_decline
 drawable ic_call_decline_low
 drawable ic_clear_black_24
 drawable ic_clock_black_24dp
+drawable ic_header_home
 drawable ic_keyboard_black_24dp
 drawable ic_launcher_foreground
 drawable ic_m3_chip_check
@@ -3302,6 +3303,8 @@ id bounceBoth
 id bounceEnd
 id bounceStart
 id btnAddEpcLength
+id btnAddManualHome
+id btnAddManualReading
 id btnAddPrefix
 id btnAddSelected
 id btnAddTarget
@@ -3457,6 +3460,7 @@ id editDialogSearchLocation
 id editDialogWebhookUrl
 id editEpc
 id editEpcLength
+id editManualScanCapture
 id editPassword
 id editPrefix
 id editUsername
@@ -3507,6 +3511,7 @@ id groups
 id headerApp
 id headerBadgeRow
 id headerConnectionStatus
+id headerHomeButton
 id headerLogo
 id headerReaderName
 id headerStatusDot
@@ -3779,8 +3784,6 @@ id startVertical
 id staticLayout
 id staticPostLayout
 id statusBanner
-id statusDot
-id statusRow
 id stop
 id stretch
 id submenuarrow
@@ -3818,6 +3821,9 @@ id textFoundCount
 id textLog
 id textLogTitle
 id textLoginBlockReason
+id textManualScanHint
+id textManualScanLastValue
+id textManualScanTitle
 id textMessage
 id textNoTargets
 id textPendingCount
@@ -3840,7 +3846,6 @@ id textSpacerNoButtons
 id textSpacerNoTitle
 id textStart
 id textStatusDetail
-id textStatusHome
 id textStatusTime
 id textSubtitle
 id textSyncItemLabel
@@ -4053,6 +4058,7 @@ layout dialog_ble_scan
 layout dialog_connection_log
 layout dialog_inventory_name
 layout dialog_location_search
+layout dialog_manual_barcode_scan
 layout dialog_radar_scan
 layout dialog_webhook_config
 layout dialog_zebra_transport
@@ -4197,6 +4203,7 @@ string bottomsheet_action_expand_halfway
 string bottomsheet_drag_handle_clicked
 string bottomsheet_drag_handle_content_description
 string btn_add_epc_len
+string btn_add_manual
 string btn_add_prefix
 string btn_apply_config
 string btn_back_home
@@ -4332,6 +4339,7 @@ string footer_user_logged
 string footer_user_logged_with_location
 string footer_user_logged_with_operation_location
 string footer_user_not_authenticated
+string header_home
 string header_title_with_operation
 string helper_buzzer
 string helper_epc_len
@@ -4418,6 +4426,12 @@ string m3_sys_motion_easing_linear
 string m3_sys_motion_easing_standard
 string m3_sys_motion_easing_standard_accelerate
 string m3_sys_motion_easing_standard_decelerate
+string manual_epc_empty
+string manual_epc_filtered
+string manual_scan_dialog_added_value
+string manual_scan_dialog_hint
+string manual_scan_dialog_title
+string manual_scan_dialog_waiting
 string material_clock_display_divider
 string material_clock_toggle_content_description
 string material_hour_24h_suffix
