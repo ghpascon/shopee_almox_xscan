@@ -15,6 +15,7 @@ data class AppSettings(
     val buzzerEnabled: Boolean = true,
     val rssiFilter: Int = -120,
     val prefixes: List<String> = emptyList(),
+    val epcLengths: List<Int> = emptyList(),
     val xtrackUrl: String = AppSettingsRepository.DEFAULT_XTRACK_URL,
     val entryLocationId: String = "",
     val entryLocationName: String = "",
@@ -44,6 +45,7 @@ class AppSettingsRepository(context: Context) {
         private val KEY_BUZZER = booleanPreferencesKey("buzzer_enabled")
         private val KEY_RSSI = intPreferencesKey("rssi_filter")
         private val KEY_PREFIXES = stringPreferencesKey("prefixes")
+        private val KEY_EPC_LENGTHS = stringPreferencesKey("epc_lengths")
         private val KEY_LAST_BLE = stringPreferencesKey("last_ble_address")
         private val KEY_XTRACK_URL = stringPreferencesKey("xtrack_url")
         private val KEY_ENTRY_LOCATION_ID = stringPreferencesKey("entry_location_id")
@@ -66,6 +68,7 @@ class AppSettingsRepository(context: Context) {
         }
         .map { prefs ->
             val prefixStr = prefs[KEY_PREFIXES] ?: ""
+            val epcLengthStr = prefs[KEY_EPC_LENGTHS] ?: ""
             val legacyLocationId = prefs[KEY_LEGACY_LOCATION_ID] ?: ""
             val legacyLocationName = prefs[KEY_LEGACY_LOCATION_NAME] ?: ""
             AppSettings(
@@ -74,6 +77,14 @@ class AppSettingsRepository(context: Context) {
                 rssiFilter = prefs[KEY_RSSI] ?: -120,
                 prefixes = if (prefixStr.isBlank()) emptyList()
                            else prefixStr.split("|").filter { it.isNotBlank() },
+                epcLengths = if (epcLengthStr.isBlank()) {
+                    emptyList()
+                } else {
+                    epcLengthStr.split("|")
+                        .mapNotNull { it.trim().toIntOrNull() }
+                        .filter { it > 0 }
+                        .distinct()
+                },
                 xtrackUrl = prefs[KEY_XTRACK_URL]?.takeIf { it.isNotBlank() } ?: DEFAULT_XTRACK_URL,
                 entryLocationId = prefs[KEY_ENTRY_LOCATION_ID] ?: legacyLocationId,
                 entryLocationName = prefs[KEY_ENTRY_LOCATION_NAME] ?: legacyLocationName,
@@ -94,6 +105,7 @@ class AppSettingsRepository(context: Context) {
             prefs[KEY_BUZZER] = settings.buzzerEnabled
             prefs[KEY_RSSI] = settings.rssiFilter
             prefs[KEY_PREFIXES] = settings.prefixes.joinToString("|")
+            prefs[KEY_EPC_LENGTHS] = settings.epcLengths.joinToString("|")
             prefs[KEY_XTRACK_URL] = settings.xtrackUrl
             prefs[KEY_ENTRY_LOCATION_ID] = settings.entryLocationId
             prefs[KEY_ENTRY_LOCATION_NAME] = settings.entryLocationName

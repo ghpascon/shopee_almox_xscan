@@ -31,19 +31,16 @@ public final class FragmentHomeBinding implements ViewBinding {
   public final MaterialButton btnConfirm;
 
   @NonNull
+  public final MaterialButton btnUnregisteredInfo;
+
+  @NonNull
   public final MaterialCardView cardTags;
 
   @NonNull
   public final MaterialCardView cardTotalLido;
 
   @NonNull
-  public final MaterialCardView cardUnregisteredTags;
-
-  @NonNull
   public final RecyclerView recyclerEpcs;
-
-  @NonNull
-  public final RecyclerView recyclerUnregisteredTags;
 
   @NonNull
   public final NestedScrollView scrollHomeContent;
@@ -55,35 +52,34 @@ public final class FragmentHomeBinding implements ViewBinding {
   public final LinearLayout statusRow;
 
   @NonNull
+  public final TextView textRegisteredCount;
+
+  @NonNull
   public final TextView textStatusHome;
 
   @NonNull
-  public final TextView textTotalLido;
-
-  @NonNull
-  public final TextView textUnregisteredTitle;
+  public final TextView textUnregisteredCount;
 
   private FragmentHomeBinding(@NonNull ConstraintLayout rootView,
       @NonNull MaterialButton btnChangeOperation, @NonNull MaterialButton btnConfirm,
-      @NonNull MaterialCardView cardTags, @NonNull MaterialCardView cardTotalLido,
-      @NonNull MaterialCardView cardUnregisteredTags, @NonNull RecyclerView recyclerEpcs,
-      @NonNull RecyclerView recyclerUnregisteredTags, @NonNull NestedScrollView scrollHomeContent,
-      @NonNull View statusDot, @NonNull LinearLayout statusRow, @NonNull TextView textStatusHome,
-      @NonNull TextView textTotalLido, @NonNull TextView textUnregisteredTitle) {
+      @NonNull MaterialButton btnUnregisteredInfo, @NonNull MaterialCardView cardTags,
+      @NonNull MaterialCardView cardTotalLido, @NonNull RecyclerView recyclerEpcs,
+      @NonNull NestedScrollView scrollHomeContent, @NonNull View statusDot,
+      @NonNull LinearLayout statusRow, @NonNull TextView textRegisteredCount,
+      @NonNull TextView textStatusHome, @NonNull TextView textUnregisteredCount) {
     this.rootView = rootView;
     this.btnChangeOperation = btnChangeOperation;
     this.btnConfirm = btnConfirm;
+    this.btnUnregisteredInfo = btnUnregisteredInfo;
     this.cardTags = cardTags;
     this.cardTotalLido = cardTotalLido;
-    this.cardUnregisteredTags = cardUnregisteredTags;
     this.recyclerEpcs = recyclerEpcs;
-    this.recyclerUnregisteredTags = recyclerUnregisteredTags;
     this.scrollHomeContent = scrollHomeContent;
     this.statusDot = statusDot;
     this.statusRow = statusRow;
+    this.textRegisteredCount = textRegisteredCount;
     this.textStatusHome = textStatusHome;
-    this.textTotalLido = textTotalLido;
-    this.textUnregisteredTitle = textUnregisteredTitle;
+    this.textUnregisteredCount = textUnregisteredCount;
   }
 
   @Override
@@ -125,6 +121,12 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.btnUnregisteredInfo;
+      MaterialButton btnUnregisteredInfo = ViewBindings.findChildViewById(rootView, id);
+      if (btnUnregisteredInfo == null) {
+        break missingId;
+      }
+
       id = R.id.cardTags;
       MaterialCardView cardTags = ViewBindings.findChildViewById(rootView, id);
       if (cardTags == null) {
@@ -137,21 +139,9 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.cardUnregisteredTags;
-      MaterialCardView cardUnregisteredTags = ViewBindings.findChildViewById(rootView, id);
-      if (cardUnregisteredTags == null) {
-        break missingId;
-      }
-
       id = R.id.recyclerEpcs;
       RecyclerView recyclerEpcs = ViewBindings.findChildViewById(rootView, id);
       if (recyclerEpcs == null) {
-        break missingId;
-      }
-
-      id = R.id.recyclerUnregisteredTags;
-      RecyclerView recyclerUnregisteredTags = ViewBindings.findChildViewById(rootView, id);
-      if (recyclerUnregisteredTags == null) {
         break missingId;
       }
 
@@ -173,28 +163,27 @@ public final class FragmentHomeBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.textRegisteredCount;
+      TextView textRegisteredCount = ViewBindings.findChildViewById(rootView, id);
+      if (textRegisteredCount == null) {
+        break missingId;
+      }
+
       id = R.id.textStatusHome;
       TextView textStatusHome = ViewBindings.findChildViewById(rootView, id);
       if (textStatusHome == null) {
         break missingId;
       }
 
-      id = R.id.textTotalLido;
-      TextView textTotalLido = ViewBindings.findChildViewById(rootView, id);
-      if (textTotalLido == null) {
-        break missingId;
-      }
-
-      id = R.id.textUnregisteredTitle;
-      TextView textUnregisteredTitle = ViewBindings.findChildViewById(rootView, id);
-      if (textUnregisteredTitle == null) {
+      id = R.id.textUnregisteredCount;
+      TextView textUnregisteredCount = ViewBindings.findChildViewById(rootView, id);
+      if (textUnregisteredCount == null) {
         break missingId;
       }
 
       return new FragmentHomeBinding((ConstraintLayout) rootView, btnChangeOperation, btnConfirm,
-          cardTags, cardTotalLido, cardUnregisteredTags, recyclerEpcs, recyclerUnregisteredTags,
-          scrollHomeContent, statusDot, statusRow, textStatusHome, textTotalLido,
-          textUnregisteredTitle);
+          btnUnregisteredInfo, cardTags, cardTotalLido, recyclerEpcs, scrollHomeContent, statusDot,
+          statusRow, textRegisteredCount, textStatusHome, textUnregisteredCount);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

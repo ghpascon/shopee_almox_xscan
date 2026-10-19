@@ -1,8 +1,9 @@
-mudar o titulo de recebimento para ALMOX
+mudanças
+tela de leitura:
+mostrar no total a qtd de cadastradas e qtd de não cadastradas (ao inves do total de uma vez)
+o de nao cadastradas nao mostre em baixo, adicione um botao simples ao lado do numero de nao cadastradas onde possamos clicar para ver os epcs,
+as cadastradas agrupe por descrição e deixe um botao simples onde possa clicar para ver os epcs (nao precisa mostrar o idcode) tbm, o botao pode ser tipo um i ℹ️
 
-na parte de config do xtrack deve ter 2 localizações localização de entrada e localizaçlão de saida
-
-criar uma tela intermediaria apos o login onde a pessoa vai definir a operação
-na tela de leitura na parte de cima deve mostrar ALMOX - ENTRADA/SAIDA e no footer a localização de acordo com a operação
-as menssagens nessa tela devem ser de confirmar entrada/saida
+nas configs adicione uma nova, chamada "epc_len" que será uma lista de comprimentos de EPCs válidos.
+posso adicionar sempelhante ao prefixo mas com o tamanhgo dos epcs que pode ser (caso nao coloque nada aceite todos)
 

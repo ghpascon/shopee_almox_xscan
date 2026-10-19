@@ -29,11 +29,11 @@ class HomeFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: MainViewModel by activityViewModels()
     private lateinit var registeredAdapter: HomeEpcAdapter
-    private lateinit var unregisteredAdapter: HomeUnregisteredAdapter
     private var currentTagCount: Int = 0
     private var isCurrentlyInventorying: Boolean = false
     private var allTagsWithDescription: Boolean = false
     private var hasRegisteredTags: Boolean = false
+    private var currentUnregisteredEpcs: List<String> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -66,16 +66,16 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        registeredAdapter = HomeEpcAdapter()
-        unregisteredAdapter = HomeUnregisteredAdapter()
+        registeredAdapter = HomeEpcAdapter { group ->
+            showEpcListDialog(
+                title = group.description,
+                epcs = group.epcs
+            )
+        }
 
         binding.recyclerEpcs.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerEpcs.adapter = registeredAdapter
         binding.recyclerEpcs.isNestedScrollingEnabled = false
-
-        binding.recyclerUnregisteredTags.layoutManager = LinearLayoutManager(requireContext())
-        binding.recyclerUnregisteredTags.adapter = unregisteredAdapter
-        binding.recyclerUnregisteredTags.isNestedScrollingEnabled = false
     }
 
     private fun setupActions() {
@@ -90,6 +90,12 @@ class HomeFragment : Fragment() {
         binding.btnChangeOperation.setOnClickListener {
             (requireActivity() as MainActivity).openOperationSelection()
         }
+        binding.btnUnregisteredInfo.setOnClickListener {
+            showEpcListDialog(
+                title = getString(R.string.home_unregistered_title),
+                epcs = currentUnregisteredEpcs
+            )
+        }
     }
 
     private fun observeState() {
@@ -99,14 +105,17 @@ class HomeFragment : Fragment() {
                     viewModel.tags.collect { tags ->
                         currentTagCount = tags.size
                         allTagsWithDescription = tags.isNotEmpty() && tags.all { it.description.isNotBlank() }
-                        binding.textTotalLido.text = currentTagCount.toString()
 
                         val unregisteredTags = tags.filter { it.descriptionLookupError }
-                        val tagsForMainList = tags.filterNot { it.descriptionLookupError }
-                        hasRegisteredTags = tagsForMainList.any { it.objectIdCode.isNotBlank() }
+                        val registeredTags = tags.filterNot { it.descriptionLookupError }
+                        hasRegisteredTags = registeredTags.any { it.objectIdCode.isNotBlank() }
+                        currentUnregisteredEpcs = unregisteredTags.map { it.epc }
 
-                        updateUnregisteredTagsSection(unregisteredTags)
-                        registeredAdapter.submitList(tagsForMainList.toList())
+                        updateReadingSummary(
+                            registeredCount = registeredTags.size,
+                            unregisteredCount = unregisteredTags.size
+                        )
+                        registeredAdapter.submitList(buildRegisteredGroups(registeredTags))
                         updateConfirmButtonState()
                     }
                 }
@@ -245,17 +254,39 @@ class HomeFragment : Fragment() {
             .show()
     }
 
-    private fun updateUnregisteredTagsSection(tags: List<RfidTag>) {
-        if (tags.isEmpty()) {
-            binding.cardUnregisteredTags.visibility = View.GONE
-            unregisteredAdapter.submitList(emptyList())
+    private fun updateReadingSummary(registeredCount: Int, unregisteredCount: Int) {
+        binding.textRegisteredCount.text = registeredCount.toString()
+        binding.textUnregisteredCount.text = unregisteredCount.toString()
+        binding.btnUnregisteredInfo.isEnabled = unregisteredCount > 0
+        binding.btnUnregisteredInfo.alpha = if (unregisteredCount > 0) 1f else 0.4f
+    }
+
+    private fun buildRegisteredGroups(tags: List<RfidTag>): List<HomeEpcGroupItem> {
+        return tags
+            .groupBy { tag ->
+                tag.description.trim().ifBlank { getString(R.string.tag_description_loading) }
+            }
+            .map { (description, groupedTags) ->
+                HomeEpcGroupItem(
+                    description = description,
+                    count = groupedTags.size,
+                    epcs = groupedTags.map { it.epc }.sorted()
+                )
+            }
+            .sortedBy { it.description.lowercase() }
+    }
+
+    private fun showEpcListDialog(title: String, epcs: List<String>) {
+        if (epcs.isEmpty()) {
+            Snackbar.make(binding.root, getString(R.string.home_epc_list_empty), Snackbar.LENGTH_SHORT).show()
             return
         }
 
-        binding.cardUnregisteredTags.visibility = View.VISIBLE
-        binding.textUnregisteredTitle.text =
-            getString(R.string.home_unregistered_title_with_count, tags.size)
-        unregisteredAdapter.submitList(tags.map { it.epc })
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.home_epc_list_title, title, epcs.size))
+            .setItems(epcs.toTypedArray(), null)
+            .setPositiveButton(R.string.btn_log_close, null)
+            .show()
     }
 
     private fun updateHomeStatus(state: MainUiState) {

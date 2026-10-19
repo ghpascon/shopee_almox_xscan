@@ -4,11 +4,13 @@ package com.smartx.rfidreader.databinding;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.smartx.rfidreader.R;
 import java.lang.NullPointerException;
@@ -20,16 +22,25 @@ public final class ItemHomeEpcBinding implements ViewBinding {
   private final MaterialCardView rootView;
 
   @NonNull
-  public final TextView textDescription;
+  public final MaterialButton btnGroupInfo;
 
   @NonNull
-  public final TextView textEpc;
+  public final LinearLayout rightInfoContainer;
 
-  private ItemHomeEpcBinding(@NonNull MaterialCardView rootView, @NonNull TextView textDescription,
-      @NonNull TextView textEpc) {
+  @NonNull
+  public final TextView textCount;
+
+  @NonNull
+  public final TextView textDescription;
+
+  private ItemHomeEpcBinding(@NonNull MaterialCardView rootView,
+      @NonNull MaterialButton btnGroupInfo, @NonNull LinearLayout rightInfoContainer,
+      @NonNull TextView textCount, @NonNull TextView textDescription) {
     this.rootView = rootView;
+    this.btnGroupInfo = btnGroupInfo;
+    this.rightInfoContainer = rightInfoContainer;
+    this.textCount = textCount;
     this.textDescription = textDescription;
-    this.textEpc = textEpc;
   }
 
   @Override
@@ -59,19 +70,32 @@ public final class ItemHomeEpcBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.btnGroupInfo;
+      MaterialButton btnGroupInfo = ViewBindings.findChildViewById(rootView, id);
+      if (btnGroupInfo == null) {
+        break missingId;
+      }
+
+      id = R.id.rightInfoContainer;
+      LinearLayout rightInfoContainer = ViewBindings.findChildViewById(rootView, id);
+      if (rightInfoContainer == null) {
+        break missingId;
+      }
+
+      id = R.id.textCount;
+      TextView textCount = ViewBindings.findChildViewById(rootView, id);
+      if (textCount == null) {
+        break missingId;
+      }
+
       id = R.id.textDescription;
       TextView textDescription = ViewBindings.findChildViewById(rootView, id);
       if (textDescription == null) {
         break missingId;
       }
 
-      id = R.id.textEpc;
-      TextView textEpc = ViewBindings.findChildViewById(rootView, id);
-      if (textEpc == null) {
-        break missingId;
-      }
-
-      return new ItemHomeEpcBinding((MaterialCardView) rootView, textDescription, textEpc);
+      return new ItemHomeEpcBinding((MaterialCardView) rootView, btnGroupInfo, rightInfoContainer,
+          textCount, textDescription);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

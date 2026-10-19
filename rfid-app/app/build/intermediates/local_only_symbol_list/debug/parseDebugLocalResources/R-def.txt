@@ -71,6 +71,7 @@ id autoLocationEntry
 id autoLocationExit
 id baseContent
 id bottomBar
+id btnAddEpcLength
 id btnAddPrefix
 id btnAddSelected
 id btnAddTarget
@@ -82,6 +83,7 @@ id btnCancel
 id btnCancelScan
 id btnChangeOperation
 id btnChooseReader
+id btnClearEpcLengths
 id btnClearPrefixes
 id btnClearScanned
 id btnClearTags
@@ -95,6 +97,7 @@ id btnDialogUseExample
 id btnDisconnect
 id btnExportCsv
 id btnGoLogin
+id btnGroupInfo
 id btnLogCancel
 id btnLogClose
 id btnLogin
@@ -122,6 +125,7 @@ id btnToggleRadar
 id btnToggleScanInventory
 id btnToggleWebhook
 id btnToggleWebhookReading
+id btnUnregisteredInfo
 id btnWebhookConfig
 id cardAddTarget
 id cardAppConfig
@@ -133,7 +137,6 @@ id cardResult
 id cardSync
 id cardTags
 id cardTotalLido
-id cardUnregisteredTags
 id cardWebhook
 id cardWebhookStatus
 id checkboxSelectTag
@@ -142,12 +145,14 @@ id chip200
 id chip50
 id chipAll
 id chipBle
+id chipGroupEpcLengths
 id chipGroupLimit
 id chipGroupPrefixes
 id chipStatus
 id editDialogSearchLocation
 id editDialogWebhookUrl
 id editEpc
+id editEpcLength
 id editPassword
 id editPrefix
 id editUsername
@@ -178,6 +183,7 @@ id labelSession
 id layoutDialogSearchLocation
 id layoutDialogWebhookUrl
 id layoutEpcInput
+id layoutEpcLength
 id layoutLocation
 id layoutLocationExit
 id layoutPassword
@@ -198,7 +204,6 @@ id progressSignal
 id progressSync
 id recyclerBleDevices
 id recyclerEpcs
-id recyclerUnregisteredTags
 id recyclerViewEvents
 id recyclerViewProgress
 id recyclerViewReaders
@@ -206,6 +211,7 @@ id recyclerViewScan
 id recyclerViewTags
 id recyclerViewTargets
 id recyclerWebhookHistory
+id rightInfoContainer
 id rowSubtitle
 id scrollHomeContent
 id scrollLog
@@ -237,6 +243,7 @@ id textPowerValue
 id textReaderId
 id textReaderName
 id textRecebimento
+id textRegisteredCount
 id textResultMessage
 id textResultSymbol
 id textResultTitle
@@ -261,9 +268,8 @@ id textTargetStatus
 id textTid
 id textTime
 id textTitle
-id textTotalLido
+id textUnregisteredCount
 id textUnregisteredEpc
-id textUnregisteredTitle
 id textWebhookStatus
 id textWebhookSummary
 id textWebhookTagCount
@@ -319,12 +325,14 @@ string ble_scan_again
 string ble_scan_done
 string ble_scan_title
 string ble_scanning
+string btn_add_epc_len
 string btn_add_prefix
 string btn_apply_config
 string btn_back_home
 string btn_cancel
 string btn_change_operation
 string btn_choose_reader
+string btn_clear_epc_len
 string btn_clear_prefixes
 string btn_clear_tags
 string btn_confirm_discard
@@ -369,6 +377,7 @@ string discard_confirm_title
 string discard_reason_empty
 string discard_reason_required
 string discard_reason_title
+string epc_length_already_exists
 string error_connection_failed
 string error_invalid_power
 string error_invalid_region
@@ -396,6 +405,7 @@ string footer_user_logged_with_operation_location
 string footer_user_not_authenticated
 string header_title_with_operation
 string helper_buzzer
+string helper_epc_len
 string helper_location
 string helper_location_entry
 string helper_location_exit
@@ -403,6 +413,7 @@ string helper_power
 string helper_prefix
 string helper_webhook_url
 string helper_xtrack_url
+string hint_epc_len
 string hint_location
 string hint_location_entry
 string hint_location_exit
@@ -417,15 +428,26 @@ string home_btn_confirm_exit
 string home_btn_loading_reasons
 string home_btn_select_reason
 string home_confirm_todo
+string home_epc_list_empty
+string home_epc_list_title
+string home_info_button_desc
+string home_info_button_label
+string home_registered_count_label
+string home_registered_group_count
 string home_subtitle
 string home_tags_section_title
 string home_total_lido_title
+string home_total_lido_value
+string home_unregistered_count_label
+string home_unregistered_info_button_desc
 string home_unregistered_title
 string home_unregistered_title_with_count
+string invalid_epc_length
 string inventory_name_hint
 string inventory_name_required
 string inventory_name_title
 string label_buzzer
+string label_epc_len
 string label_location
 string label_location_entry
 string label_location_exit

@@ -1,27 +1,27 @@
 [
     {
-        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/fragment_reading.xml",
-        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/fragment_reading.xml"
-    },
-    {
-        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/fragment_home.xml",
-        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/fragment_home.xml"
+        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/dialog_location_search.xml",
+        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/dialog_location_search.xml"
     },
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/fragment_operation_select.xml",
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/fragment_operation_select.xml"
     },
     {
-        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/dialog_location_search.xml",
-        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/dialog_location_search.xml"
+        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/fragment_home.xml",
+        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/fragment_home.xml"
     },
     {
-        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/header_app.xml",
-        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/header_app.xml"
+        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/fragment_reading.xml",
+        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/fragment_reading.xml"
     },
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/fragment_config_access.xml",
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/fragment_config_access.xml"
+    },
+    {
+        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/header_app.xml",
+        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/header_app.xml"
     },
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/item_reader.xml",
@@ -30,6 +30,10 @@
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/dialog_radar_scan.xml",
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/dialog_radar_scan.xml"
+    },
+    {
+        "merged": "com.smartx.rfidreader.app-mergeDebugResources-60:/layout/fragment_home.xml",
+        "source": "com.smartx.rfidreader.app-main-63:/layout/fragment_home.xml"
     },
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/item_tag.xml",
@@ -130,10 +134,6 @@
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/item_ble_device.xml",
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/item_ble_device.xml"
-    },
-    {
-        "merged": "com.smartx.rfidreader.app-mergeDebugResources-60:/layout/fragment_xtrack_config.xml",
-        "source": "com.smartx.rfidreader.app-main-63:/layout/fragment_xtrack_config.xml"
     },
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-mergeDebugResources-60:/layout/item_webhook_status.xml",

@@ -391,6 +391,12 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
                     return@collect
                 }
 
+                // Filtro de tamanho de EPC
+                val epcLengths = settings.epcLengths
+                if (epcLengths.isNotEmpty() && tag.epc.length !in epcLengths) {
+                    return@collect
+                }
+
                 // Filtro RSSI
                 val rssiVal = tag.rssi.toDoubleOrNull()
                 if (rssiVal != null && rssiVal < settings.rssiFilter) return@collect
