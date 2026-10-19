@@ -139,6 +139,7 @@
     <string name="error_invalid_rssi">Valor RSSI inválido</string>
     <string name="error_invalid_url">URL inválida. Use http:// ou https://</string>
     <string name="error_invalid_webhook_interval">Intervalo inválido. Use um valor maior que zero</string>
+    <string name="error_load_devices">Falha ao carregar devices: %1$s</string>
     <string name="error_load_locations">Falha ao carregar localizações: %1$s</string>
     <string name="error_login_empty_fields">Informe usuário e senha</string>
     <string name="error_no_reader">Nenhum leitor selecionado</string>
@@ -161,6 +162,7 @@
     <string name="header_home">Voltar para home</string>
     <string name="header_title_with_operation">ALMOX - %1$s</string>
     <string name="helper_buzzer">Emite um bipe ao detectar nova tag</string>
+    <string name="helper_device">Selecione o UID do device para aplicar PREFIX e EPC_LEN</string>
     <string name="helper_epc_len">Informe os tamanhos aceitos. Se vazio, todos os tamanhos são permitidos</string>
     <string name="helper_location">Usada na confirmação desta operação</string>
     <string name="helper_location_entry">Destino usado nas confirmações de entrada</string>
@@ -169,12 +171,14 @@
     <string name="helper_prefix">Somente tags com EPC iniciando pelo prefixo serão listadas</string>
     <string name="helper_webhook_url">Ex: https://meuservidor.com/api/rfid</string>
     <string name="helper_xtrack_url">URL do serviço XTrack para integração</string>
+    <string name="hint_device">Selecionar device</string>
     <string name="hint_epc_len">Ex: 24</string>
     <string name="hint_location">Selecionar localização</string>
     <string name="hint_location_entry">Selecionar localização de entrada</string>
     <string name="hint_location_exit">Selecionar localização de saída</string>
     <string name="hint_power">Potência (dBm)</string>
     <string name="hint_prefix">Ex: E200 ou 3000</string>
+    <string name="hint_search_device">Pesquisar device</string>
     <string name="hint_search_location">Pesquisar localização</string>
     <string name="hint_webhook_url">URL do Webhook</string>
     <string name="hint_xtrack_url">xtrack_url</string>
@@ -203,6 +207,7 @@
     <string name="inventory_name_required">Informe o nome do inventário</string>
     <string name="inventory_name_title">Nome do inventário</string>
     <string name="label_buzzer">Buzzer</string>
+    <string name="label_device">Device</string>
     <string name="label_epc_len">Filtro de tamanho EPC</string>
     <string name="label_location">Localização</string>
     <string name="label_location_entry">Localização de entrada</string>
@@ -313,6 +318,8 @@
     <string name="xtrack_details_placeholder">Sem tentativas recentes.</string>
     <string name="xtrack_details_success">Sucesso: %1$d localização(ões) carregada(s). Exemplo: %2$s</string>
     <string name="xtrack_details_title">Detalhes técnicos</string>
+    <string name="xtrack_device_applied">Device %1$s aplicado. PREFIX=%2$d | EPC_LEN=%3$d</string>
+    <string name="xtrack_device_uid_invalid">UID do device inválido: %1$s</string>
     <string name="xtrack_warning_checking">Verificando comunicação com XTrack...</string>
     <string name="xtrack_warning_prefix">Aviso XTrack: %1$s</string>
     <string name="xtrack_warning_retry_hint">Toque para tentar novamente.</string>

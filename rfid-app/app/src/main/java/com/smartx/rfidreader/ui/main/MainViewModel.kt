@@ -67,6 +67,12 @@ data class DiscardConditionOption(
     val name: String
 )
 
+private data class ParsedDeviceUidSettings(
+    val prefixes: List<String>?,
+    val epcLengths: List<Int>?,
+    val errors: List<String>
+)
+
 sealed interface MoveLocationUiResult {
     data class Success(
         val sentCount: Int,
@@ -194,6 +200,10 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             xtrack_manager.currentUser.collect { user ->
                 _uiState.update { it.copy(isAuthenticated = user != null) }
             }
+        }
+        viewModelScope.launch {
+            val settings = settingsRepo.flow.first()
+            autoLoadXtrackConfigOnStartup(settings)
         }
         // Publica estado do leitor no singleton global — visível por qualquer Activity
         viewModelScope.launch {
@@ -1120,6 +1130,124 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         val current = _uiState.value.appSettings
         if (current.selectedOperation == OperationType.NONE) return
         saveAppSettings(current.copy(selectedOperation = OperationType.NONE))
+    }
+
+    private suspend fun autoLoadXtrackConfigOnStartup(initialSettings: AppSettings) {
+        val xtrackUrl = initialSettings.xtrackUrl.trim()
+        if (xtrackUrl.isBlank()) return
+
+        val devicesResult = xtrack_manager.fetchDevices(xtrackUrl)
+        val devices = devicesResult.getOrElse { err ->
+            Log.w(TAG, "Falha ao carregar devices no startup: ${err.message}")
+            return
+        }
+
+        val selectedUidNormalized = normalizeDeviceUid(initialSettings.xtrackDeviceUid)
+
+        val selectedDevice = when {
+            selectedUidNormalized.isNotBlank() -> {
+                devices.firstOrNull { normalizeDeviceUid(it.uid) == selectedUidNormalized }
+            }
+            else -> {
+                devices.firstOrNull { it.uid.equals("COLETOR_ALMOX", ignoreCase = true) }
+            }
+        } ?: return
+
+        // Alguns ambientes retornam o payload de configuração em NAME.
+        val configPayload = selectedDevice.name.trim().ifBlank { selectedDevice.uid.trim() }
+        val parsed = parseDeviceUidSettings(configPayload)
+        var updated = _uiState.value.appSettings.copy(
+            xtrackUrl = xtrackUrl,
+            xtrackDeviceId = selectedDevice.id,
+            xtrackDeviceName = selectedDevice.name,
+            xtrackDeviceUid = selectedDevice.uid.trim()
+        )
+
+        parsed.prefixes?.let { prefixes ->
+            updated = updated.copy(prefixes = prefixes.map { it.uppercase(Locale.ROOT) })
+        }
+        parsed.epcLengths?.let { epcLens ->
+            updated = updated.copy(epcLengths = epcLens)
+        }
+
+        if (updated != _uiState.value.appSettings) {
+            saveAppSettings(updated)
+        }
+
+        if (parsed.errors.isNotEmpty()) {
+            Log.w(TAG, "UID do device com inconsistências no startup: ${parsed.errors.joinToString(" | ")}")
+        }
+    }
+
+    private fun normalizeDeviceUid(value: String): String {
+        return value.trim().lowercase(Locale.ROOT)
+    }
+
+    private fun parseDeviceUidSettings(uidRaw: String): ParsedDeviceUidSettings {
+        val errors = mutableListOf<String>()
+        val uid = uidRaw.trim().lowercase(Locale.ROOT)
+        if (uid.isBlank()) {
+            return ParsedDeviceUidSettings(
+                prefixes = null,
+                epcLengths = null,
+                errors = listOf("UID vazio")
+            )
+        }
+
+        val payload = uid.removePrefix("{").removeSuffix("}")
+
+        fun extractRawList(key: String): String? {
+            val escapedKey = Regex.escape(key)
+            val listRegex = Regex("""(?i)(?:^|[,{\s])["']?$escapedKey["']?\s*[:=]\s*\[([^\]]*)\]""")
+            val listMatch = listRegex.find(payload)
+            if (listMatch != null) {
+                return listMatch.groupValues[1]
+            }
+
+            val keyExistsRegex = Regex("""(?i)(?:^|[,{\s])["']?$escapedKey["']?\s*[:=]""")
+            if (keyExistsRegex.containsMatchIn(payload)) {
+                errors += "$key deve ser uma lista no formato [v1, v2]"
+            }
+            return null
+        }
+
+        val prefixRaw = extractRawList("prefix")
+        val prefixes = if (prefixRaw != null) {
+            prefixRaw
+                .split(",")
+                .map { it.trim().trim('"', '\'') }
+                .filter { it.isNotBlank() }
+                .distinct()
+        } else {
+            null
+        }
+
+        val epcLenRaw = extractRawList("epc_len")
+        val epcLengths = if (epcLenRaw != null) {
+            val parsed = mutableListOf<Int>()
+            epcLenRaw
+                .split(",")
+                .map { it.trim().trim('"', '\'') }
+                .filter { it.isNotBlank() }
+                .forEach { token ->
+                    val value = token.toIntOrNull()
+                    if (value == null || value <= 0) {
+                        errors += "EPC_LEN inválido: $token"
+                    } else {
+                        parsed += value
+                    }
+                }
+
+            parsed.distinct()
+        } else {
+            null
+        }
+
+        return ParsedDeviceUidSettings(
+            prefixes = prefixes,
+            epcLengths = epcLengths,
+            errors = errors
+        )
     }
 
     // -------------------------------------------------------------------------

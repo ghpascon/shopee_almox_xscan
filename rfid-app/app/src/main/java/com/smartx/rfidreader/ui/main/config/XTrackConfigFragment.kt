@@ -20,6 +20,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.smartx.rfidreader.R
 import com.smartx.rfidreader.core.settings.AppSettings
+import com.smartx.rfidreader.core.xtrack.XTrackDevice
 import com.smartx.rfidreader.core.xtrack.XTrackLocation
 import com.smartx.rfidreader.core.xtrack.xtrack_manager
 import com.smartx.rfidreader.databinding.FragmentXtrackConfigBinding
@@ -34,8 +35,12 @@ class XTrackConfigFragment : Fragment() {
     private val viewModel: MainViewModel by activityViewModels()
 
     private var locationOptions: List<LocationOption> = emptyList()
+    private var deviceOptions: List<DeviceOption> = emptyList()
     private var lastLoadedLocationsUrl: String = ""
+    private var lastLoadedDevicesUrl: String = ""
+    private var lastLoadedDeviceDetailsKey: String = ""
     private var lastTechnicalDetails: String = ""
+    private var isLoadingSelectedDeviceDetails: Boolean = false
 
     private data class LocationOption(
         val id: String,
@@ -45,6 +50,20 @@ class XTrackConfigFragment : Fragment() {
             return if (name.isBlank()) id else "$name ($id)"
         }
     }
+
+    private data class DeviceOption(
+        val id: String,
+        val name: String,
+        val uid: String
+    ) {
+        override fun toString(): String = uid.trim()
+    }
+
+    private data class ParsedDeviceUidSettings(
+        val prefixes: List<String>?,
+        val epcLengths: List<Int>?,
+        val errors: List<String>
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -70,6 +89,7 @@ class XTrackConfigFragment : Fragment() {
                 return@setOnClickListener
             }
             loadAvailableLocations(url)
+            loadAvailableDevices(url)
         }
 
         binding.btnSaveXtrack.setOnClickListener {
@@ -81,7 +101,17 @@ class XTrackConfigFragment : Fragment() {
             if (locationOptions.isEmpty()) {
                 loadAvailableLocations(url)
             }
+            if (deviceOptions.isEmpty()) {
+                loadAvailableDevices(url)
+            }
             showSnackbar(getString(R.string.app_settings_saved))
+        }
+
+        binding.autoDevice.setOnClickListener {
+            showDeviceSearchDialog()
+        }
+        binding.layoutDevice.setOnClickListener {
+            showDeviceSearchDialog()
         }
 
         binding.autoLocationEntry.setOnClickListener {
@@ -116,7 +146,10 @@ class XTrackConfigFragment : Fragment() {
         }
 
         maybeReloadLocations(settings.xtrackUrl)
+        maybeReloadDevices(settings.xtrackUrl)
         syncSelectedLocationText(settings)
+        syncSelectedDeviceText(settings)
+        maybeReloadSelectedDeviceDetails(settings)
     }
 
     private fun saveUrlAndReturn(clearLocationIfUrlChanged: Boolean): String {
@@ -127,6 +160,9 @@ class XTrackConfigFragment : Fragment() {
         val updated = if (clearLocationIfUrlChanged && urlChanged) {
             current.copy(
                 xtrackUrl = normalizedUrl,
+                xtrackDeviceId = "",
+                xtrackDeviceName = "",
+                xtrackDeviceUid = "",
                 entryLocationId = "",
                 entryLocationName = "",
                 exitLocationId = "",
@@ -140,9 +176,13 @@ class XTrackConfigFragment : Fragment() {
 
         if (clearLocationIfUrlChanged && urlChanged) {
             locationOptions = emptyList()
+            deviceOptions = emptyList()
             binding.autoLocationEntry.setText("", false)
             binding.autoLocationExit.setText("", false)
+            binding.autoDevice.setText("", false)
             lastLoadedLocationsUrl = ""
+            lastLoadedDevicesUrl = ""
+            lastLoadedDeviceDetailsKey = ""
         }
 
         return normalizedUrl
@@ -153,6 +193,13 @@ class XTrackConfigFragment : Fragment() {
         if (normalized.isBlank()) return
         if (normalized == lastLoadedLocationsUrl) return
         loadAvailableLocations(normalized)
+    }
+
+    private fun maybeReloadDevices(xtrackUrl: String) {
+        val normalized = xtrackUrl.trim()
+        if (normalized.isBlank()) return
+        if (normalized == lastLoadedDevicesUrl) return
+        loadAvailableDevices(normalized)
     }
 
     private fun loadAvailableLocations(xtrackUrl: String) {
@@ -198,6 +245,57 @@ class XTrackConfigFragment : Fragment() {
         }
     }
 
+    private fun loadAvailableDevices(xtrackUrl: String) {
+        val normalized = xtrackUrl.trim()
+        if (normalized.isBlank()) return
+
+        lastLoadedDevicesUrl = normalized
+        binding.layoutDevice.isEnabled = false
+        binding.btnReloadLocations.isEnabled = false
+        binding.progressLocations.visibility = View.VISIBLE
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = xtrack_manager.fetchDevices(normalized)
+            if (_binding == null) return@launch
+
+            binding.layoutDevice.isEnabled = true
+            binding.btnReloadLocations.isEnabled = true
+            binding.progressLocations.visibility = View.GONE
+
+            result.onSuccess { devices ->
+                applyDeviceOptions(devices)
+                val settings = viewModel.uiState.value.appSettings
+                val selectedUid = normalizeDeviceUid(settings.xtrackDeviceUid)
+                val selectedName = settings.xtrackDeviceName.trim()
+
+                if (selectedUid.isBlank() && selectedName.isNotBlank()) {
+                    val migrated = deviceOptions.firstOrNull {
+                        it.name.equals(selectedName, ignoreCase = true)
+                    }
+                    if (migrated != null) {
+                        saveSelectedDevice(migrated, showSavedMessage = false)
+                    } else {
+                        syncSelectedDeviceText(settings)
+                    }
+                } else if (selectedUid.isBlank()) {
+                    val defaultOption = deviceOptions.firstOrNull {
+                        it.uid.equals("COLETOR_ALMOX", ignoreCase = true)
+                    }
+                    if (defaultOption != null) {
+                        saveSelectedDevice(defaultOption, showSavedMessage = false)
+                    } else {
+                        syncSelectedDeviceText(settings)
+                    }
+                } else {
+                    syncSelectedDeviceText(settings)
+                }
+            }.onFailure { err ->
+                applyDeviceOptions(emptyList())
+                showSnackbar(getString(R.string.error_load_devices, err.message ?: "erro"))
+            }
+        }
+    }
+
     private fun setTechnicalDetails(message: String) {
         lastTechnicalDetails = message
         if (_binding != null) {
@@ -207,6 +305,25 @@ class XTrackConfigFragment : Fragment() {
 
     private fun applyLocationOptions(locations: List<XTrackLocation>) {
         locationOptions = locations.map { LocationOption(id = it.id, name = it.name) }
+    }
+
+    private fun applyDeviceOptions(devices: List<XTrackDevice>) {
+        deviceOptions = devices
+            .filter { it.active }
+            .mapNotNull { device ->
+                val normalizedName = device.name.trim()
+                val normalizedUid = device.uid.trim()
+                if (normalizedName.isBlank() || normalizedUid.isBlank()) return@mapNotNull null
+                DeviceOption(
+                    id = device.id,
+                    name = normalizedName,
+                    uid = normalizedUid
+                )
+            }
+            .distinctBy {
+                val uidKey = it.uid.trim().lowercase(Locale.ROOT)
+                if (uidKey.isNotBlank()) uidKey else it.name.lowercase(Locale.ROOT)
+            }
     }
 
     private fun filterLocationOptions(query: String): List<LocationOption> {
@@ -271,6 +388,68 @@ class XTrackConfigFragment : Fragment() {
         dialog.show()
     }
 
+    private fun showDeviceSearchDialog() {
+        if (deviceOptions.isEmpty()) {
+            showSnackbar(getString(R.string.error_load_devices, "nenhum device carregado"))
+            return
+        }
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_location_search, null)
+        val searchInput = dialogView.findViewById<TextInputEditText>(R.id.editDialogSearchLocation)
+        val listView = dialogView.findViewById<ListView>(R.id.listDialogLocations)
+
+        searchInput.hint = getString(R.string.hint_search_device)
+
+        var filtered = deviceOptions
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_list_item_1, filtered.map { it.toString() }.toMutableList())
+        listView.adapter = adapter
+
+        searchInput.addTextChangedListener { text ->
+            filtered = filterDeviceOptions(text?.toString().orEmpty())
+            adapter.clear()
+            adapter.addAll(filtered.map { it.toString() })
+            adapter.notifyDataSetChanged()
+        }
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.label_device)
+            .setView(dialogView)
+            .setNegativeButton(R.string.btn_cancel, null)
+            .create()
+
+        listView.setOnItemClickListener { _, _, position, _ ->
+            val option = filtered.getOrNull(position) ?: return@setOnItemClickListener
+            saveSelectedDevice(option)
+            dialog.dismiss()
+        }
+
+        dialog.setOnShowListener {
+            searchInput.requestFocus()
+            val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            searchInput.post {
+                imm?.showSoftInput(searchInput, InputMethodManager.SHOW_IMPLICIT)
+            }
+        }
+
+        dialog.setOnDismissListener {
+            val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+            imm?.hideSoftInputFromWindow(searchInput.windowToken, 0)
+        }
+
+        dialog.show()
+    }
+
+    private fun filterDeviceOptions(query: String): List<DeviceOption> {
+        val normalized = query.trim().lowercase(Locale.ROOT)
+        if (normalized.isBlank()) return deviceOptions
+
+        return deviceOptions.filter { option ->
+            option.name.lowercase(Locale.ROOT).contains(normalized) ||
+                option.id.lowercase(Locale.ROOT).contains(normalized) ||
+                option.uid.lowercase(Locale.ROOT).contains(normalized)
+        }
+    }
+
     private fun saveSelectedLocation(option: LocationOption, isEntry: Boolean) {
         val current = viewModel.uiState.value.appSettings
         val normalizedUrl = binding.editXtrackUrl.text?.toString()?.trim().orEmpty()
@@ -291,6 +470,23 @@ class XTrackConfigFragment : Fragment() {
 
         viewModel.saveAppSettings(updatedSettings)
         showSnackbar(getString(R.string.app_settings_saved))
+    }
+
+    private fun saveSelectedDevice(option: DeviceOption, showSavedMessage: Boolean = true) {
+        val current = viewModel.uiState.value.appSettings
+        val normalizedUrl = binding.editXtrackUrl.text?.toString()?.trim().orEmpty()
+        val updatedSettings = current.copy(
+            xtrackUrl = normalizedUrl,
+            xtrackDeviceId = option.id,
+            xtrackDeviceName = option.name,
+            xtrackDeviceUid = option.uid
+        )
+
+        viewModel.saveAppSettings(updatedSettings)
+        if (showSavedMessage) {
+            showSnackbar(getString(R.string.app_settings_saved))
+        }
+        loadSelectedDeviceDetails(normalizedUrl, option.uid, force = true)
     }
 
     private fun syncSelectedLocationText(settings: AppSettings) {
@@ -325,8 +521,177 @@ class XTrackConfigFragment : Fragment() {
         }
     }
 
+    private fun syncSelectedDeviceText(settings: AppSettings) {
+        val selectedDeviceUid = settings.xtrackDeviceUid.trim()
+        val selectedDeviceName = settings.xtrackDeviceName.trim()
+        val selected = deviceOptions.firstOrNull {
+            (selectedDeviceUid.isNotBlank() && it.uid.equals(selectedDeviceUid, ignoreCase = true)) ||
+                it.name.equals(selectedDeviceName, ignoreCase = true)
+        }
+
+        val displayValue = selected?.uid ?: selectedDeviceUid
+        val currentText = binding.autoDevice.text?.toString().orEmpty()
+        if (currentText != displayValue) {
+            binding.autoDevice.setText(displayValue, false)
+        }
+    }
+
+    private fun maybeReloadSelectedDeviceDetails(settings: AppSettings) {
+        val url = settings.xtrackUrl.trim()
+        val selectedUid = normalizeDeviceUid(settings.xtrackDeviceUid)
+        if (url.isBlank() || selectedUid.isBlank()) return
+
+        val key = "$url|$selectedUid"
+        if (key == lastLoadedDeviceDetailsKey) return
+
+        loadSelectedDeviceDetails(url, selectedUid)
+    }
+
+    private fun loadSelectedDeviceDetails(xtrackUrl: String, selectedUidRaw: String, force: Boolean = false) {
+        val normalizedUrl = xtrackUrl.trim()
+        val normalizedUid = normalizeDeviceUid(selectedUidRaw)
+        if (normalizedUrl.isBlank() || normalizedUid.isBlank()) return
+
+        val key = "$normalizedUrl|$normalizedUid"
+        if (!force && key == lastLoadedDeviceDetailsKey) return
+        if (isLoadingSelectedDeviceDetails && !force) return
+        lastLoadedDeviceDetailsKey = key
+        isLoadingSelectedDeviceDetails = true
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = xtrack_manager.fetchDevices(normalizedUrl)
+            try {
+                if (_binding == null) return@launch
+
+                result.onSuccess { devices ->
+                    runCatching {
+                        val selectedDevice = devices.firstOrNull {
+                            normalizeDeviceUid(it.uid) == normalizedUid
+                        } ?: throw IllegalStateException("Device com UID selecionado não encontrado")
+
+                        // Alguns ambientes retornam o payload de configuração em NAME.
+                        val configPayload = selectedDevice.name.trim().ifBlank { selectedDevice.uid.trim() }
+                        val parsed = parseDeviceUidSettings(configPayload)
+                        val current = viewModel.uiState.value.appSettings
+
+                        var updated = current.copy(
+                            xtrackUrl = normalizedUrl,
+                            xtrackDeviceId = selectedDevice.id,
+                            xtrackDeviceName = selectedDevice.name,
+                            xtrackDeviceUid = selectedDevice.uid.trim()
+                        )
+
+                        parsed.prefixes?.let { prefixes ->
+                            updated = updated.copy(prefixes = prefixes.map { it.uppercase(Locale.ROOT) })
+                        }
+                        parsed.epcLengths?.let { epcLens ->
+                            updated = updated.copy(epcLengths = epcLens)
+                        }
+
+                        if (updated != current) {
+                            viewModel.saveAppSettings(updated)
+                        }
+
+                        if (parsed.errors.isNotEmpty()) {
+                            showSnackbar(getString(R.string.xtrack_device_uid_invalid, parsed.errors.joinToString(" | ")))
+                        } else {
+                            showSnackbar(
+                                getString(
+                                    R.string.xtrack_device_applied,
+                                    selectedDevice.uid,
+                                    updated.prefixes.size,
+                                    updated.epcLengths.size
+                                )
+                            )
+                        }
+                    }.onFailure { parseErr ->
+                        lastLoadedDeviceDetailsKey = ""
+                        showSnackbar(getString(R.string.xtrack_device_uid_invalid, parseErr.message ?: "erro ao processar UID"))
+                    }
+                }.onFailure { err ->
+                    lastLoadedDeviceDetailsKey = ""
+                    showSnackbar(getString(R.string.error_load_devices, err.message ?: "erro"))
+                }
+            } finally {
+                isLoadingSelectedDeviceDetails = false
+            }
+        }
+    }
+
+    private fun normalizeDeviceUid(value: String): String {
+        return value.trim().lowercase(Locale.ROOT)
+    }
+
+    private fun parseDeviceUidSettings(uidRaw: String): ParsedDeviceUidSettings {
+        val errors = mutableListOf<String>()
+        val uid = uidRaw.trim().lowercase(Locale.ROOT)
+        if (uid.isBlank()) {
+            return ParsedDeviceUidSettings(
+                prefixes = null,
+                epcLengths = null,
+                errors = listOf("UID vazio")
+            )
+        }
+
+        val payload = uid.removePrefix("{").removeSuffix("}")
+
+        fun extractRawList(key: String): String? {
+            val escapedKey = Regex.escape(key)
+            val listRegex = Regex("""(?i)(?:^|[,{\s])["']?$escapedKey["']?\s*[:=]\s*\[([^\]]*)\]""")
+            val listMatch = listRegex.find(payload)
+            if (listMatch != null) {
+                return listMatch.groupValues[1]
+            }
+
+            val keyExistsRegex = Regex("""(?i)(?:^|[,{\s])["']?$escapedKey["']?\s*[:=]""")
+            if (keyExistsRegex.containsMatchIn(payload)) {
+                errors += "$key deve ser uma lista no formato [v1, v2]"
+            }
+            return null
+        }
+
+        val prefixRaw = extractRawList("prefix")
+        val prefixes = if (prefixRaw != null) {
+            prefixRaw
+                .split(",")
+                .map { it.trim().trim('"', '\'') }
+                .filter { it.isNotBlank() }
+                .distinct()
+        } else {
+            null
+        }
+
+        val epcLenRaw = extractRawList("epc_len")
+        val epcLengths = if (epcLenRaw != null) {
+            val parsed = mutableListOf<Int>()
+            epcLenRaw
+                .split(",")
+                .map { it.trim().trim('"', '\'') }
+                .filter { it.isNotBlank() }
+                .forEach { token ->
+                    val value = token.toIntOrNull()
+                    if (value == null || value <= 0) {
+                        errors += "EPC_LEN inválido: $token"
+                    } else {
+                        parsed += value
+                    }
+                }
+
+            parsed.distinct()
+        } else {
+            null
+        }
+
+        return ParsedDeviceUidSettings(
+            prefixes = prefixes,
+            epcLengths = epcLengths,
+            errors = errors
+        )
+    }
+
     private fun showSnackbar(msg: String) {
-        Snackbar.make(requireActivity().window.decorView, msg, Snackbar.LENGTH_SHORT).show()
+        val anchor = _binding?.root ?: activity?.window?.decorView ?: return
+        Snackbar.make(anchor, msg, Snackbar.LENGTH_SHORT).show()
     }
 
     override fun onDestroyView() {

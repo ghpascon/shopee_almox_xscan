@@ -10,6 +10,8 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.IOException
 import java.net.ConnectException
 import java.net.SocketTimeoutException
@@ -46,6 +48,13 @@ data class XTrackCondition(
     val departmentIds: List<String>
 )
 
+data class XTrackDevice(
+    val id: String,
+    val name: String,
+    val uid: String,
+    val active: Boolean
+)
+
 private data class ParsedRow(
     val fields: Map<String, List<String>>
 ) {
@@ -58,6 +67,7 @@ object xtrack_manager {
     private const val TAG = "xtrack_manager"
 
     private const val GET_LOCATION_PAYLOAD = "<msg><command>GetLocation</command><terminal>ERP</terminal></msg>"
+    private const val GET_DEVICE_PAYLOAD = "<msg><command>GetDevice</command><terminal>ERP</terminal></msg>"
     private const val GET_CONDITION_PAYLOAD = "<msg><command>GetCondition</command><terminal>SAPext</terminal></msg>"
 
     private const val GET_OBJECT_COMMAND = "GetObject"
@@ -231,6 +241,49 @@ object xtrack_manager {
             parsed
         }.onFailure { err ->
             Log.e(TAG, "GetCondition failed: ${err.message}", err)
+        }
+    }
+
+    suspend fun fetchDevices(xtrackUrl: String): Result<List<XTrackDevice>> = withContext(Dispatchers.IO) {
+        val url = xtrackUrl.trim()
+        if (url.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("xtrack_url não configurada"))
+        }
+
+        runCatching {
+            Log.i(TAG, "POST GetDevice(list) -> $url")
+            val raw = postXml(url, GET_DEVICE_PAYLOAD)
+            if (raw.isBlank()) {
+                throw IllegalStateException("XTrack retornou resposta vazia para GetDevice")
+            }
+            parseDevicesResponse(raw)
+        }.onFailure { err ->
+            Log.e(TAG, "GetDevice(list) failed: ${err.message}", err)
+        }
+    }
+
+    suspend fun fetchDeviceByName(xtrackUrl: String, deviceName: String): Result<XTrackDevice> = withContext(Dispatchers.IO) {
+        val url = xtrackUrl.trim()
+        if (url.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("xtrack_url não configurada"))
+        }
+
+        val normalizedName = deviceName.trim()
+        if (normalizedName.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("Nome do device não informado"))
+        }
+
+        runCatching {
+            val payload = buildGetDeviceByNamePayload(normalizedName)
+            Log.i(TAG, "POST GetDevice(byName) -> $url (name=$normalizedName)")
+            val raw = postXml(url, payload)
+            if (raw.isBlank()) {
+                throw IllegalStateException("XTrack retornou resposta vazia para GetDevice por nome")
+            }
+            parseDevicesResponse(raw).firstOrNull()
+                ?: throw IllegalStateException("GetDevice não retornou dados para o nome $normalizedName")
+        }.onFailure { err ->
+            Log.e(TAG, "GetDevice(byName) failed: ${err.message}", err)
         }
     }
 
@@ -437,6 +490,81 @@ object xtrack_manager {
         }.distinctBy { it.id.ifBlank { it.name } }
     }
 
+    internal fun parseDevicesXml(xml: String): List<XTrackDevice> {
+        val rows = parseDataRows(xml)
+        return rows.mapNotNull { row ->
+            val id = row.first("ID").trim()
+            val name = row.first("NAME").trim()
+            val uid = row.first("UID").trim()
+            val active = row.first("ACTIVE").trim() != "0"
+
+            if (id.isBlank() && name.isBlank() && uid.isBlank()) return@mapNotNull null
+
+            XTrackDevice(
+                id = id,
+                name = name,
+                uid = uid,
+                active = active
+            )
+        }.distinctBy { it.id.ifBlank { it.name } }
+    }
+
+    internal fun parseDevicesResponse(rawBody: String): List<XTrackDevice> {
+        val trimmed = rawBody.trim()
+        if (trimmed.isBlank()) return emptyList()
+
+        return if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+            parseDevicesJson(trimmed)
+        } else {
+            parseDevicesXml(trimmed)
+        }
+    }
+
+    private fun parseDevicesJson(jsonRaw: String): List<XTrackDevice> {
+        return runCatching {
+            if (jsonRaw.startsWith("[")) {
+                val jsonArray = JSONArray(jsonRaw)
+                parseDevicesJsonArray(jsonArray)
+            } else {
+                val root = JSONObject(jsonRaw)
+                val data = root.opt("data")
+                when (data) {
+                    is JSONArray -> parseDevicesJsonArray(data)
+                    is JSONObject -> listOfNotNull(parseDeviceJsonObject(data))
+                    else -> emptyList()
+                }
+            }
+        }.getOrElse { err ->
+            throw IllegalStateException("Resposta JSON de GetDevice inválida: ${err.message}", err)
+        }
+    }
+
+    private fun parseDevicesJsonArray(array: JSONArray): List<XTrackDevice> {
+        val devices = mutableListOf<XTrackDevice>()
+        for (index in 0 until array.length()) {
+            val item = array.optJSONObject(index) ?: continue
+            val parsed = parseDeviceJsonObject(item) ?: continue
+            devices += parsed
+        }
+        return devices.distinctBy { it.id.ifBlank { it.name } }
+    }
+
+    private fun parseDeviceJsonObject(obj: JSONObject): XTrackDevice? {
+        val id = obj.optString("ID").trim()
+        val name = obj.optString("NAME").trim()
+        val uid = obj.optString("UID").trim()
+        val active = obj.optString("ACTIVE").trim() != "0"
+
+        if (id.isBlank() && name.isBlank() && uid.isBlank()) return null
+
+        return XTrackDevice(
+            id = id,
+            name = name,
+            uid = uid,
+            active = active
+        )
+    }
+
     private fun parseDataRows(xml: String): List<ParsedRow> {
         if (xml.isBlank()) return emptyList()
         val result = mutableListOf<ParsedRow>()
@@ -487,6 +615,10 @@ object xtrack_manager {
 
     private fun buildGetUserPayload(login: String): String {
         return "<msg><command>GetUser</command><terminal>ERP</terminal><data><user><LOGIN>${xmlEscape(login)}</LOGIN></user></data></msg>"
+    }
+
+    private fun buildGetDeviceByNamePayload(deviceName: String): String {
+        return "<msg><command>GetDevice</command><terminal>ERP</terminal><data><device><NAME>${xmlEscape(deviceName)}</NAME></device></data></msg>"
     }
 
     private fun buildMoveLocationPayload(objectIdCodes: List<String>, locationName: String): String {

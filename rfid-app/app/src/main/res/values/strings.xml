@@ -68,12 +68,19 @@
     <string name="section_xtrack_config">Integração XTrack</string>
     <string name="btn_reload_locations">Carregar localizações</string>
     <string name="btn_save_xtrack">Salvar XTrack</string>
+    <string name="label_device">Device</string>
+    <string name="hint_device">Selecionar device</string>
+    <string name="helper_device">Selecione o UID do device para aplicar PREFIX e EPC_LEN</string>
+    <string name="hint_search_device">Pesquisar device</string>
     <string name="error_xtrack_url_required">Informe o xtrack_url para continuar</string>
+    <string name="error_load_devices">Falha ao carregar devices: %1$s</string>
     <string name="xtrack_details_title">Detalhes técnicos</string>
     <string name="xtrack_details_placeholder">Sem tentativas recentes.</string>
     <string name="xtrack_details_loading">Carregando localizações de %1$s usando comando GetLocation/ERP...</string>
     <string name="xtrack_details_success">Sucesso: %1$d localização(ões) carregada(s). Exemplo: %2$s</string>
     <string name="xtrack_details_error">Falha: %1$s</string>
+    <string name="xtrack_device_applied">Device %1$s aplicado. PREFIX=%2$d | EPC_LEN=%3$d</string>
+    <string name="xtrack_device_uid_invalid">UID do device inválido: %1$s</string>
     <string name="hint_prefix">Ex: E200 ou 3000</string>
     <string name="btn_add_prefix">Adicionar</string>
     <string name="btn_clear_prefixes">Limpar tudo</string>

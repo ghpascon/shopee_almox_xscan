@@ -40,12 +40,12 @@
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/mipmap-anydpi-v26/ic_launcher.xml"
     },
     {
-        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/layout_item_home_epc.xml.flat",
-        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/item_home_epc.xml"
-    },
-    {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/layout_dialog_radar_scan.xml.flat",
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/dialog_radar_scan.xml"
+    },
+    {
+        "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/layout_item_home_epc.xml.flat",
+        "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/item_home_epc.xml"
     },
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/layout_fragment_config.xml.flat",
@@ -212,6 +212,10 @@
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/drawable/bg_spinner.xml"
     },
     {
+        "merged": "com.smartx.rfidreader.app-debug-61:/layout_fragment_xtrack_config.xml.flat",
+        "source": "com.smartx.rfidreader.app-main-63:/layout/fragment_xtrack_config.xml"
+    },
+    {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/layout_item_webhook_status.xml.flat",
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/item_webhook_status.xml"
     },
@@ -246,9 +250,5 @@
     {
         "merged": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-debug-61:/layout_fragment_login.xml.flat",
         "source": "/home/gabriel/.gradle/daemon/8.10.2/com.smartx.rfidreader.app-main-63:/layout/fragment_login.xml"
-    },
-    {
-        "merged": "com.smartx.rfidreader.app-debug-61:/layout_header_app.xml.flat",
-        "source": "com.smartx.rfidreader.app-main-63:/layout/header_app.xml"
     }
 ]

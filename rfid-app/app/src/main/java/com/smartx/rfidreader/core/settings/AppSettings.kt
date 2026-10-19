@@ -17,6 +17,9 @@ data class AppSettings(
     val prefixes: List<String> = emptyList(),
     val epcLengths: List<Int> = emptyList(),
     val xtrackUrl: String = AppSettingsRepository.DEFAULT_XTRACK_URL,
+    val xtrackDeviceId: String = "",
+    val xtrackDeviceName: String = "",
+    val xtrackDeviceUid: String = "",
     val entryLocationId: String = "",
     val entryLocationName: String = "",
     val exitLocationId: String = "",
@@ -48,6 +51,9 @@ class AppSettingsRepository(context: Context) {
         private val KEY_EPC_LENGTHS = stringPreferencesKey("epc_lengths")
         private val KEY_LAST_BLE = stringPreferencesKey("last_ble_address")
         private val KEY_XTRACK_URL = stringPreferencesKey("xtrack_url")
+        private val KEY_XTRACK_DEVICE_ID = stringPreferencesKey("xtrack_device_id")
+        private val KEY_XTRACK_DEVICE_NAME = stringPreferencesKey("xtrack_device_name")
+        private val KEY_XTRACK_DEVICE_UID = stringPreferencesKey("xtrack_device_uid")
         private val KEY_ENTRY_LOCATION_ID = stringPreferencesKey("entry_location_id")
         private val KEY_ENTRY_LOCATION_NAME = stringPreferencesKey("entry_location_name")
         private val KEY_EXIT_LOCATION_ID = stringPreferencesKey("exit_location_id")
@@ -86,6 +92,9 @@ class AppSettingsRepository(context: Context) {
                         .distinct()
                 },
                 xtrackUrl = prefs[KEY_XTRACK_URL]?.takeIf { it.isNotBlank() } ?: DEFAULT_XTRACK_URL,
+                xtrackDeviceId = prefs[KEY_XTRACK_DEVICE_ID] ?: "",
+                xtrackDeviceName = prefs[KEY_XTRACK_DEVICE_NAME] ?: "",
+                xtrackDeviceUid = prefs[KEY_XTRACK_DEVICE_UID] ?: "",
                 entryLocationId = prefs[KEY_ENTRY_LOCATION_ID] ?: legacyLocationId,
                 entryLocationName = prefs[KEY_ENTRY_LOCATION_NAME] ?: legacyLocationName,
                 exitLocationId = prefs[KEY_EXIT_LOCATION_ID] ?: legacyLocationId,
@@ -107,6 +116,9 @@ class AppSettingsRepository(context: Context) {
             prefs[KEY_PREFIXES] = settings.prefixes.joinToString("|")
             prefs[KEY_EPC_LENGTHS] = settings.epcLengths.joinToString("|")
             prefs[KEY_XTRACK_URL] = settings.xtrackUrl
+            prefs[KEY_XTRACK_DEVICE_ID] = settings.xtrackDeviceId
+            prefs[KEY_XTRACK_DEVICE_NAME] = settings.xtrackDeviceName
+            prefs[KEY_XTRACK_DEVICE_UID] = settings.xtrackDeviceUid
             prefs[KEY_ENTRY_LOCATION_ID] = settings.entryLocationId
             prefs[KEY_ENTRY_LOCATION_NAME] = settings.entryLocationName
             prefs[KEY_EXIT_LOCATION_ID] = settings.exitLocationId

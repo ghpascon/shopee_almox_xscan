@@ -25,6 +25,9 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
   private final ScrollView rootView;
 
   @NonNull
+  public final AutoCompleteTextView autoDevice;
+
+  @NonNull
   public final AutoCompleteTextView autoLocationEntry;
 
   @NonNull
@@ -38,6 +41,9 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
 
   @NonNull
   public final TextInputEditText editXtrackUrl;
+
+  @NonNull
+  public final TextInputLayout layoutDevice;
 
   @NonNull
   public final TextInputLayout layoutLocation;
@@ -58,18 +64,21 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
   public final TextView textXtrackDetailsTitle;
 
   private FragmentXtrackConfigBinding(@NonNull ScrollView rootView,
-      @NonNull AutoCompleteTextView autoLocationEntry,
+      @NonNull AutoCompleteTextView autoDevice, @NonNull AutoCompleteTextView autoLocationEntry,
       @NonNull AutoCompleteTextView autoLocationExit, @NonNull MaterialButton btnReloadLocations,
       @NonNull MaterialButton btnSaveXtrack, @NonNull TextInputEditText editXtrackUrl,
-      @NonNull TextInputLayout layoutLocation, @NonNull TextInputLayout layoutLocationExit,
-      @NonNull TextInputLayout layoutXtrackUrl, @NonNull ProgressBar progressLocations,
-      @NonNull TextView textXtrackDetails, @NonNull TextView textXtrackDetailsTitle) {
+      @NonNull TextInputLayout layoutDevice, @NonNull TextInputLayout layoutLocation,
+      @NonNull TextInputLayout layoutLocationExit, @NonNull TextInputLayout layoutXtrackUrl,
+      @NonNull ProgressBar progressLocations, @NonNull TextView textXtrackDetails,
+      @NonNull TextView textXtrackDetailsTitle) {
     this.rootView = rootView;
+    this.autoDevice = autoDevice;
     this.autoLocationEntry = autoLocationEntry;
     this.autoLocationExit = autoLocationExit;
     this.btnReloadLocations = btnReloadLocations;
     this.btnSaveXtrack = btnSaveXtrack;
     this.editXtrackUrl = editXtrackUrl;
+    this.layoutDevice = layoutDevice;
     this.layoutLocation = layoutLocation;
     this.layoutLocationExit = layoutLocationExit;
     this.layoutXtrackUrl = layoutXtrackUrl;
@@ -105,6 +114,12 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.autoDevice;
+      AutoCompleteTextView autoDevice = ViewBindings.findChildViewById(rootView, id);
+      if (autoDevice == null) {
+        break missingId;
+      }
+
       id = R.id.autoLocationEntry;
       AutoCompleteTextView autoLocationEntry = ViewBindings.findChildViewById(rootView, id);
       if (autoLocationEntry == null) {
@@ -132,6 +147,12 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
       id = R.id.editXtrackUrl;
       TextInputEditText editXtrackUrl = ViewBindings.findChildViewById(rootView, id);
       if (editXtrackUrl == null) {
+        break missingId;
+      }
+
+      id = R.id.layoutDevice;
+      TextInputLayout layoutDevice = ViewBindings.findChildViewById(rootView, id);
+      if (layoutDevice == null) {
         break missingId;
       }
 
@@ -171,9 +192,9 @@ public final class FragmentXtrackConfigBinding implements ViewBinding {
         break missingId;
       }
 
-      return new FragmentXtrackConfigBinding((ScrollView) rootView, autoLocationEntry,
-          autoLocationExit, btnReloadLocations, btnSaveXtrack, editXtrackUrl, layoutLocation,
-          layoutLocationExit, layoutXtrackUrl, progressLocations, textXtrackDetails,
+      return new FragmentXtrackConfigBinding((ScrollView) rootView, autoDevice, autoLocationEntry,
+          autoLocationExit, btnReloadLocations, btnSaveXtrack, editXtrackUrl, layoutDevice,
+          layoutLocation, layoutLocationExit, layoutXtrackUrl, progressLocations, textXtrackDetails,
           textXtrackDetailsTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
