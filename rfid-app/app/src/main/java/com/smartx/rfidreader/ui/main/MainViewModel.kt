@@ -657,6 +657,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
 
+        logUnregisteredEpcsOnOperationConfirm(xtrackUrl)
+
         val objectIds = _tagMap.values
             .filterNot { it.descriptionLookupError }
             .map { it.objectIdCode.trim() }
@@ -765,6 +767,8 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
 
+        logUnregisteredEpcsOnOperationConfirm(xtrackUrl)
+
         val objectIds = _tagMap.values
             .filterNot { it.descriptionLookupError }
             .map { it.objectIdCode.trim() }
@@ -791,6 +795,24 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
         lastMoveConditionRequest = request
         lastMoveLocationRequest = null
         executeMoveCondition(request)
+    }
+
+    private fun logUnregisteredEpcsOnOperationConfirm(xtrackUrl: String) {
+        val unregisteredEpcs = _tagMap.values.asSequence()
+            .filter { it.descriptionLookupError }
+            .map { it.epc.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .toList()
+
+        if (unregisteredEpcs.isEmpty()) return
+
+        viewModelScope.launch {
+            xtrack_manager.insertUnregisteredEpcLog(xtrackUrl, unregisteredEpcs)
+                .onFailure { err ->
+                    Log.w(TAG, "Falha ao registrar EPCs não cadastrados no XTrack: ${err.message}", err)
+                }
+        }
     }
 
     fun retryLastMoveLocation() {

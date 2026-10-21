@@ -125,8 +125,8 @@ public final class XR2Reader implements com.smartx.rfidreader.core.reader.IRfidR
     }
     
     /**
-     * Mantém o gatilho físico (523) fora da lista do scanner de código de barras.
-     * Assim, o barcode fica disponível apenas nas teclas laterais (520/521/522).
+     * Mapeia o gatilho físico 523 para RFID, nunca para barcode.
+     * O barcode fica disponível apenas nas teclas laterais (520/521/522).
      */
     private final void configureBarcodeScanKeys() {
     }

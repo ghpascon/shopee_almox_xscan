@@ -355,6 +355,45 @@ object xtrack_manager {
         }
     }
 
+    suspend fun insertUnregisteredEpcLog(
+        xtrackUrl: String,
+        epcs: List<String>
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        val url = xtrackUrl.trim()
+        if (url.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("xtrack_url não configurada"))
+        }
+
+        val message = epcs
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .joinToString(",")
+        if (message.isBlank()) {
+            return@withContext Result.success(Unit)
+        }
+
+        runCatching {
+            val payload = JSONObject()
+                .put("command", "InsertLog")
+                .put("terminal", "ERP")
+                .put(
+                    "data",
+                    JSONObject()
+                        .put("provider", "XSCAN")
+                        .put("source", "cadastrar")
+                        .put("message", message)
+                        .put("loglevel", "1")
+                )
+
+            Log.i(TAG, "POST InsertLog -> $url (epcs=${message.split(',').size})")
+            postJson(url, payload.toString())
+            Unit
+        }.onFailure { err ->
+            Log.e(TAG, "InsertLog failed: ${err.message}", err)
+        }
+    }
+
     private fun requestLocations(url: String): List<XTrackLocation> {
         Log.i(TAG, "POST GetLocation -> $url")
         val xml = postXml(url, GET_LOCATION_PAYLOAD)
@@ -406,6 +445,26 @@ object xtrack_manager {
                 "HTTP ${response.code} GetLocation/GetUser contentType=${response.header("Content-Type").orEmpty()} " +
                     "bodyPreview=${rawBody.preview()}"
             )
+            return rawBody
+        }
+    }
+
+    private fun postJson(url: String, payload: String): String {
+        val body = payload.toRequestBody("application/json; charset=utf-8".toMediaType())
+        val request = Request.Builder()
+            .url(url)
+            .header("Accept", "application/json")
+            .post(body)
+            .build()
+
+        httpClient.newCall(request).execute().use { response ->
+            val rawBody = response.body?.string().orEmpty()
+            if (!response.isSuccessful) {
+                throw IllegalStateException(
+                    "HTTP ${response.code} no XTrack (contentType=${response.header("Content-Type").orEmpty()}). " +
+                        "Payload=${payload.preview()} | Body=${rawBody.preview()}"
+                )
+            }
             return rawBody
         }
     }

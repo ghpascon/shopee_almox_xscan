@@ -2,6 +2,8 @@ package com.smartx.rfidreader.ui.main
 
 import android.os.Bundle
 import android.os.SystemClock
+import android.media.AudioManager
+import android.media.ToneGenerator
 import android.view.LayoutInflater
 import android.view.KeyEvent
 import android.view.MotionEvent
@@ -33,7 +35,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             293,
             KeyEvent.KEYCODE_HEADSETHOOK,
             KeyEvent.KEYCODE_BUTTON_R1,
-            523   // XR2 handle trigger
+            523   // XR2 trigger: RFID only
         )
 
         private const val HEADER_HOLD_MS = 5000L
@@ -50,6 +52,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var headerDownX = 0f
     private var headerDownY = 0f
     private var headerGestureCanceled = false
+    private var toneGenerator: ToneGenerator? = null
 
     override fun inflateBinding(inflater: LayoutInflater) = ActivityMainBinding.inflate(inflater)
 
@@ -71,6 +74,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         setupBackHandler()
         setupHeaderAccessGesture()
         observeNavigation()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        toneGenerator = runCatching {
+            ToneGenerator(AudioManager.STREAM_MUSIC, ToneGenerator.MAX_VOLUME)
+        }.getOrNull()
+    }
+
+    override fun onStop() {
+        toneGenerator?.release()
+        toneGenerator = null
+        super.onStop()
+    }
+
+    private fun playBeep() {
+        toneGenerator?.startTone(ToneGenerator.TONE_PROP_ACK, 100)
     }
 
     private fun loadHomeOrLogin() {
@@ -192,6 +212,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun observeNavigation() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.buzzerEvent.collect {
+                    playBeep()
+                }
+            }
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.navigateToReading.collect {

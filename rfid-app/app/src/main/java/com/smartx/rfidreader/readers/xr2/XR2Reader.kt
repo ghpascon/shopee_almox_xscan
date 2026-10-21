@@ -66,8 +66,8 @@ class XR2Reader : IRfidReader {
     override suspend fun connect(context: Context): Boolean = withContext(Dispatchers.IO) {
         _connectionState.value = ReaderConnectionState.CONNECTING
         return@withContext try {
-            // Remove keycode 523 (trigger) da lista de scan de código de barras
-            // para que o gatilho nunca acione o leitor óptico.
+            // Mapeia a tecla 523 como gatilho RFID e mantém o barcode apenas nas
+            // teclas laterais 520/521/522.
             configureBarcodeScanKeys()
 
             RFIDSDKManager.getInstance().power(true)
@@ -106,7 +106,7 @@ class XR2Reader : IRfidReader {
         } catch (e: Exception) {
             Log.e(TAG, "Erro ao desconectar XR2", e)
         } finally {
-            // Mantém o trigger fora das teclas de scanner também ao desconectar.
+            // Mantém o trigger mapeado somente para RFID também ao desconectar.
             configureBarcodeScanKeys()
             _connectionState.value = ReaderConnectionState.DISCONNECTED
         }
@@ -198,16 +198,16 @@ class XR2Reader : IRfidReader {
     }
 
     /**
-     * Mantém o gatilho físico (523) fora da lista do scanner de código de barras.
-     * Assim, o barcode fica disponível apenas nas teclas laterais (520/521/522).
+    * Mapeia o gatilho físico 523 para RFID, nunca para barcode.
+     * O barcode fica disponível apenas nas teclas laterais (520/521/522).
      */
     private fun configureBarcodeScanKeys() {
         try {
             val dm = DeviceManager()
-            dm.setSettingProperty("persist-persist.sys.rfid.key", "0-")
+            dm.setSettingProperty("persist-persist.sys.rfid.key", "523-")
             val scanKeys = "520-521-522-"
             dm.setSettingProperty("persist-persist.sys.scan.key", scanKeys)
-            Log.d(TAG, "configureBarcodeScanKeys(): scan.key=$scanKeys")
+            Log.d(TAG, "configureBarcodeScanKeys(): rfid.key=523-, scan.key=$scanKeys")
         } catch (e: Exception) {
             Log.w(TAG, "DeviceManager não disponível neste dispositivo: ${e.message}")
         }

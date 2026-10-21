@@ -34,7 +34,7 @@ class RadarScanSelectDialog(
             293,
             KeyEvent.KEYCODE_HEADSETHOOK,
             KeyEvent.KEYCODE_BUTTON_R1,
-            523   // XR2 handle trigger
+            523   // XR2 trigger: RFID only
         )
     }
 
