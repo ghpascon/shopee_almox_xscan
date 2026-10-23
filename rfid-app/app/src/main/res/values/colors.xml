@@ -35,4 +35,6 @@
     <color name="status_pending_text">#E65100</color>
     <color name="status_synced_bg">#E8F5E9</color>
     <color name="status_synced_text">#2E7D32</color>
+    <color name="registered_tags_bg">#E8F5E9</color>
+    <color name="registered_tags_text">#1B5E20</color>
 </resources>

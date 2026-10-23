@@ -2138,6 +2138,8 @@ color primary_text_default_material_dark
 color primary_text_default_material_light
 color primary_text_disabled_material_dark
 color primary_text_disabled_material_light
+color registered_tags_bg
+color registered_tags_text
 color ripple_material_dark
 color ripple_material_light
 color secondary_text_default_material_dark
@@ -3311,6 +3313,7 @@ id btnAddSelected
 id btnAddTarget
 id btnApplyConfig
 id btnBackHome
+id btnBackToLocationConfirmation
 id btnBleCancel
 id btnBluetooth
 id btnCancel
@@ -3323,6 +3326,7 @@ id btnClearScanned
 id btnClearTags
 id btnClearTargets
 id btnConfirm
+id btnConfirmEntryLocation
 id btnConnect
 id btnDeleteAll
 id btnDeleteEvent
@@ -3341,6 +3345,7 @@ id btnOpenXtrackConfig
 id btnOperationDiscard
 id btnOperationEntry
 id btnOperationExit
+id btnRejectEntryLocation
 id btnReloadConfig
 id btnReloadLocations
 id btnRemoveTarget
@@ -3506,6 +3511,8 @@ id ghost_view_holder
 id gone
 id graph
 id graph_wrap
+id groupLocationConfirmation
+id groupLocationHelp
 id group_divider
 id grouping
 id groups
@@ -3815,6 +3822,7 @@ id textConnectionStatus
 id textCount
 id textDescription
 id textEnd
+id textEntryLocationConfirmation
 id textEpc
 id textEventDate
 id textEventsEmpty
@@ -4069,6 +4077,7 @@ layout fragment_config
 layout fragment_config_access
 layout fragment_confirm_result
 layout fragment_home
+layout fragment_location_confirmation
 layout fragment_login
 layout fragment_operation_select
 layout fragment_radar
@@ -4286,6 +4295,7 @@ string discard_confirm_title
 string discard_reason_empty
 string discard_reason_required
 string discard_reason_title
+string entry_location_not_configured
 string epc_length_already_exists
 string error_a11y_label
 string error_code_0
@@ -4406,6 +4416,13 @@ string label_sending_waiting
 string label_session
 string label_webhook
 string label_webhook_interval
+string location_confirmation_no
+string location_confirmation_prompt
+string location_confirmation_title
+string location_confirmation_yes
+string location_help_back
+string location_help_message
+string location_help_title
 string login_btn_enter
 string login_hint_password
 string login_hint_user

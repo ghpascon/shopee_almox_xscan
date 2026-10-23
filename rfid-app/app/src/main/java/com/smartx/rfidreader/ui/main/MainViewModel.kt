@@ -45,6 +45,7 @@ data class MainUiState(
     val xtrackCommunicationWarning: String? = null,
     val isAuthenticated: Boolean = false,
     val appSettings: AppSettings = AppSettings(),
+    val appSettingsLoaded: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -193,7 +194,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     init {
         viewModelScope.launch {
             settingsRepo.flow.collect { settings ->
-                _uiState.update { it.copy(appSettings = settings) }
+                _uiState.update { it.copy(appSettings = settings, appSettingsLoaded = true) }
             }
         }
         viewModelScope.launch {

@@ -48,6 +48,8 @@
     <color name="md_theme_tertiary">#A85F00</color>
     <color name="md_theme_tertiaryContainer">#FFDEB8</color>
     <color name="operation_exit_blue">#1976D2</color>
+    <color name="registered_tags_bg">#E8F5E9</color>
+    <color name="registered_tags_text">#1B5E20</color>
     <color name="status_active">#4CAF50</color>
     <color name="status_connected">#FFC107</color>
     <color name="status_disconnected">#F44336</color>
@@ -132,6 +134,7 @@
     <string name="discard_reason_empty">Nenhum motivo de descarte disponível</string>
     <string name="discard_reason_required">Selecione um motivo de descarte</string>
     <string name="discard_reason_title">Selecionar motivo de descarte</string>
+    <string name="entry_location_not_configured">Localização de entrada não configurada</string>
     <string name="epc_length_already_exists">Tamanho EPC já adicionado</string>
     <string name="error_connection_failed">Falha ao conectar. Verifique se o dispositivo é compatível.</string>
     <string name="error_invalid_power">Valor inválido</string>
@@ -220,6 +223,13 @@
     <string name="label_session">Sessão Gen2</string>
     <string name="label_webhook">Webhook</string>
     <string name="label_webhook_interval">Intervalo (segundos)</string>
+    <string name="location_confirmation_no">Não</string>
+    <string name="location_confirmation_prompt">Você está nesta localização?</string>
+    <string name="location_confirmation_title">Confirmar localização:</string>
+    <string name="location_confirmation_yes">Sim, continuar</string>
+    <string name="location_help_back">Voltar</string>
+    <string name="location_help_message">Esta não parece ser a localização correta. Procure ajuda com o responsável antes de continuar.</string>
+    <string name="location_help_title">Procure ajuda</string>
     <string name="login_btn_enter">Login</string>
     <string name="login_hint_password">Senha</string>
     <string name="login_hint_user">Usuário</string>

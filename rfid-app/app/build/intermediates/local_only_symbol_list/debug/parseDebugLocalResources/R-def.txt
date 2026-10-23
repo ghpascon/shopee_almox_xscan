@@ -34,6 +34,8 @@ color md_theme_surfaceVariant
 color md_theme_tertiary
 color md_theme_tertiaryContainer
 color operation_exit_blue
+color registered_tags_bg
+color registered_tags_text
 color status_active
 color status_connected
 color status_disconnected
@@ -81,6 +83,7 @@ id btnAddSelected
 id btnAddTarget
 id btnApplyConfig
 id btnBackHome
+id btnBackToLocationConfirmation
 id btnBleCancel
 id btnBluetooth
 id btnCancel
@@ -93,6 +96,7 @@ id btnClearScanned
 id btnClearTags
 id btnClearTargets
 id btnConfirm
+id btnConfirmEntryLocation
 id btnConnect
 id btnDeleteAll
 id btnDeleteEvent
@@ -111,6 +115,7 @@ id btnOpenXtrackConfig
 id btnOperationDiscard
 id btnOperationEntry
 id btnOperationExit
+id btnRejectEntryLocation
 id btnReloadConfig
 id btnReloadLocations
 id btnRemoveTarget
@@ -168,6 +173,8 @@ id footerDeviceId
 id footerLogoutButton
 id footerUserInfo
 id fragmentContainer
+id groupLocationConfirmation
+id groupLocationHelp
 id headerApp
 id headerBadgeRow
 id headerConnectionStatus
@@ -233,6 +240,7 @@ id textBleScanStatus
 id textConnectionStatus
 id textCount
 id textDescription
+id textEntryLocationConfirmation
 id textEpc
 id textEventDate
 id textEventsEmpty
@@ -300,6 +308,7 @@ layout fragment_config
 layout fragment_config_access
 layout fragment_confirm_result
 layout fragment_home
+layout fragment_location_confirmation
 layout fragment_login
 layout fragment_operation_select
 layout fragment_radar
@@ -386,6 +395,7 @@ string discard_confirm_title
 string discard_reason_empty
 string discard_reason_required
 string discard_reason_title
+string entry_location_not_configured
 string epc_length_already_exists
 string error_connection_failed
 string error_invalid_power
@@ -474,6 +484,13 @@ string label_sending_waiting
 string label_session
 string label_webhook
 string label_webhook_interval
+string location_confirmation_no
+string location_confirmation_prompt
+string location_confirmation_title
+string location_confirmation_yes
+string location_help_back
+string location_help_message
+string location_help_title
 string login_btn_enter
 string login_hint_password
 string login_hint_user

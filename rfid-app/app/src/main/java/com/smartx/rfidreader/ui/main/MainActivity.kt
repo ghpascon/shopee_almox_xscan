@@ -21,9 +21,11 @@ import com.smartx.rfidreader.databinding.ActivityMainBinding
 import com.smartx.rfidreader.ui.base.BaseActivity
 import com.smartx.rfidreader.ui.main.access.ConfigAccessFragment
 import com.smartx.rfidreader.ui.main.login.LoginFragment
+import com.smartx.rfidreader.ui.main.login.LocationConfirmationFragment
 import com.smartx.rfidreader.ui.main.operation.OperationSelectFragment
 import com.smartx.rfidreader.ui.main.reading.ReadingFragment
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
@@ -43,6 +45,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val TAG_LOGIN = "login"
         const val TAG_OPERATION = "operation"
         const val TAG_CONFIG_ACCESS = "config_access"
+        const val TAG_LOCATION_CONFIRMATION = "location_confirmation"
     }
 
     val viewModel: MainViewModel by viewModels()
@@ -64,7 +67,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         viewModel.autoConnectLastReader()
 
         if (savedInstanceState == null) {
-            loadLogin()
+            showEntryLocationConfirmation()
         }
 
         supportFragmentManager.addOnBackStackChangedListener {
@@ -94,7 +97,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun loadHomeOrLogin() {
-        if (viewModel.uiState.value.isAuthenticated) loadHome() else loadLogin()
+        if (viewModel.uiState.value.isAuthenticated) loadHome() else showEntryLocationConfirmation()
     }
 
     private fun loadOperation() {
@@ -143,6 +146,30 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, LoginFragment(), TAG_LOGIN)
             .commit()
+    }
+
+    private fun showEntryLocationConfirmation() {
+        lifecycleScope.launch {
+            val state = viewModel.uiState.first { it.appSettingsLoaded }
+            val configuredLocation = state.appSettings.entryLocationName
+                .ifBlank { state.appSettings.entryLocationId }
+            val locationLabel = configuredLocation
+                .substringBefore('/')
+                .trim()
+                .ifBlank { getString(R.string.entry_location_not_configured) }
+
+            supportFragmentManager.beginTransaction()
+                .replace(
+                    R.id.fragmentContainer,
+                    LocationConfirmationFragment.newInstance(locationLabel),
+                    TAG_LOCATION_CONFIRMATION
+                )
+                .commit()
+        }
+    }
+
+    fun continueToLoginAfterLocationConfirmed() {
+        loadLogin()
     }
 
     private fun loadConfigAccess() {
@@ -301,7 +328,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     override fun onLogoutPressed() {
         supportFragmentManager.popBackStackImmediate(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        loadLogin()
+        showEntryLocationConfirmation()
     }
 
     override fun onHeaderHomePressed() {

@@ -1001,6 +1001,8 @@
     <color name="primary_text_default_material_light">#de000000</color>
     <color name="primary_text_disabled_material_dark">#4Dffffff</color>
     <color name="primary_text_disabled_material_light">#39000000</color>
+    <color name="registered_tags_bg">#E8F5E9</color>
+    <color name="registered_tags_text">#1B5E20</color>
     <color name="ripple_material_dark">#33ffffff</color>
     <color name="ripple_material_light">#1f000000</color>
     <color name="secondary_text_default_material_dark">#b3ffffff</color>
@@ -2155,6 +2157,7 @@
     <string name="discard_reason_empty">Nenhum motivo de descarte disponível</string>
     <string name="discard_reason_required">Selecione um motivo de descarte</string>
     <string name="discard_reason_title">Selecionar motivo de descarte</string>
+    <string name="entry_location_not_configured">Localização de entrada não configurada</string>
     <string name="epc_length_already_exists">Tamanho EPC já adicionado</string>
     <string description="Screen reader announcement for when a checkbox is on error. [CHAR LIMIT=NONE]" name="error_a11y_label">
     Error: invalid
@@ -2277,6 +2280,13 @@
     <string name="label_session">Sessão Gen2</string>
     <string name="label_webhook">Webhook</string>
     <string name="label_webhook_interval">Intervalo (segundos)</string>
+    <string name="location_confirmation_no">Não</string>
+    <string name="location_confirmation_prompt">Você está nesta localização?</string>
+    <string name="location_confirmation_title">Confirmar localização:</string>
+    <string name="location_confirmation_yes">Sim, continuar</string>
+    <string name="location_help_back">Voltar</string>
+    <string name="location_help_message">Esta não parece ser a localização correta. Procure ajuda com o responsável antes de continuar.</string>
+    <string name="location_help_title">Procure ajuda</string>
     <string name="login_btn_enter">Login</string>
     <string name="login_hint_password">Senha</string>
     <string name="login_hint_user">Usuário</string>
