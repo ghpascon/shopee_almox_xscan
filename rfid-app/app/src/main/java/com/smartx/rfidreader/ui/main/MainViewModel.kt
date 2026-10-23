@@ -1099,6 +1099,7 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun loginXTrack(username: String, password: String) {
+        val app = getApplication<Application>()
         val reason = getLoginBlockReason()
         if (reason != null) {
             _uiState.update { it.copy(loginErrorMessage = reason) }
@@ -1112,6 +1113,25 @@ class MainViewModel(app: Application) : AndroidViewModel(app) {
 
             when (val result = xtrack_manager.login(xtrackUrl, username, password)) {
                 is XTrackLoginResult.Success -> {
+                    val settings = _uiState.value.appSettings
+                    val locationLabel = settings.entryLocationName
+                        .ifBlank { settings.entryLocationId }
+                        .substringBefore('/')
+                        .trim()
+                        .ifBlank { app.getString(R.string.entry_location_not_configured) }
+                    val displayUserName = result.user.name.ifBlank { result.user.login }
+
+                    viewModelScope.launch {
+                        xtrack_manager.insertLoginLog(
+                            xtrackUrl = xtrackUrl,
+                            userName = displayUserName,
+                            locationName = locationLabel,
+                            applicationTitle = app.getString(R.string.app_name)
+                        ).onFailure { err ->
+                            Log.w(TAG, "Falha ao registrar login no XTrack: ${err.message}", err)
+                        }
+                    }
+
                     saveAppSettings(_uiState.value.appSettings.copy(selectedOperation = OperationType.NONE))
                     _uiState.update {
                         it.copy(

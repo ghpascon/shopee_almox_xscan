@@ -394,6 +394,45 @@ object xtrack_manager {
         }
     }
 
+    suspend fun insertLoginLog(
+        xtrackUrl: String,
+        userName: String,
+        locationName: String,
+        applicationTitle: String
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        val url = xtrackUrl.trim()
+        if (url.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("xtrack_url não configurada"))
+        }
+
+        val normalizedUserName = userName.trim()
+        val normalizedLocation = locationName.trim()
+        val normalizedApplicationTitle = applicationTitle.trim()
+        if (normalizedUserName.isBlank() || normalizedLocation.isBlank() || normalizedApplicationTitle.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("Usuário, localização ou título da aplicação não informado"))
+        }
+
+        runCatching {
+            val payload = JSONObject()
+                .put("command", "InsertLog")
+                .put("terminal", "ERP")
+                .put(
+                    "data",
+                    JSONObject()
+                        .put("provider", "XSCAN")
+                        .put("source", "login")
+                        .put("message", "Usuário $normalizedUserName logou em $normalizedLocation ($normalizedApplicationTitle)")
+                        .put("loglevel", "1")
+                )
+
+            Log.i(TAG, "POST InsertLog(login) -> $url (user=$normalizedUserName, location=$normalizedLocation)")
+            postJson(url, payload.toString())
+            Unit
+        }.onFailure { err ->
+            Log.e(TAG, "InsertLog(login) failed: ${err.message}", err)
+        }
+    }
+
     private fun requestLocations(url: String): List<XTrackLocation> {
         Log.i(TAG, "POST GetLocation -> $url")
         val xml = postXml(url, GET_LOCATION_PAYLOAD)
